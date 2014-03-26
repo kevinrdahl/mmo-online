@@ -1,4 +1,3 @@
-======
 ABOUT:
 ======
 MMO online is functionally an MMO RTS. It is the #1 man vs bear RTS off the market, and is climbing in marketshare every day. Literally multiples of users log on weekly to see what kind of changes Kevin has made. They are typically few.
@@ -10,7 +9,6 @@ The server runs on node.js, and thus is also Javascript.
 It is intended that the server will store data using MongoDB, making this the most Javascripty game ever created. The sanity of such an endeavour is admittedly questionable.
 
 
-======
 SETUP:
 ======
 1. Place server.js in the install folder of node.js, and run node on it.
