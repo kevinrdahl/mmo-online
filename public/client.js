@@ -1,3 +1,7 @@
+var socketURL = 'http://kevinstuff.net';
+var socketPort = 8999;
+var imgPrefix = 'http://kevinstuff.net/img/';
+
 var socket;
 var canvas = document.getElementById("gameview");
 canvas.setAttribute("tabindex", 0);
@@ -43,8 +47,7 @@ for (key in keys) {
 	pressed[keys[key]] = false;
 }
 
-var imageList = ['bear.jpg', 'man.jpg', 'blue.jpg', 'bruce.jpg', 'emma.jpg', 'simon.jpg', 'hue.jpg', 'lion.jpg'];
-var urlPrefix = 'http://184.75.245.77/img/';
+var imageList = ['bear.jpg', 'man.jpg'];
 var images = new Object();
 var numLoaded = 0;
 
@@ -72,7 +75,7 @@ var COLOUR_NEUTRAL = [[255,255,0], [180,180,0], [255,255,200]];
 var COLOUR_HOSTILE = [[255,0,0], [180,0,0], [255,200,200]];
 
 function imageLoaded () {
-	var str = this.src.substring(urlPrefix.length);
+	var str = this.src.substring(imgPrefix.length);
 	images[str][0] = true;
 	chatLog(str);
 	numLoaded++;
@@ -88,12 +91,12 @@ function loadImages() {
 		var image = new Image();
 		image.onload = imageLoaded;
 		images[imageList[i]] = [false, image];
-		image.src = urlPrefix + imageList[i];
+		image.src = imgPrefix + imageList[i];
 	}
 }
 
 function openConnection() {
-	socket = io.connect("http://184.75.245.77", {port: 8999, transports: ["websocket"]});
+	socket = io.connect(socketURL, {port: socketPort, transports: ["websocket"]});
 	socket.on("connect", onConnect);
 	socket.on("disconnect", onDisconnect);
 	socket.on("message", onMessage);
