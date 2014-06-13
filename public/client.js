@@ -215,8 +215,7 @@ function onMessage (data) {
 }
 
 function readMessage(msg) {
-	//hacky, but step is not needed(this only called if step matches)
-	//I dun wanna rewrite all those indeces
+	//this is only called if the step matches, so step can be discarded
 	msg.shift();
 	lastMessage = gameStep;
 	
