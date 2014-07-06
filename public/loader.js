@@ -94,7 +94,7 @@ function onLoadFile() {
 		fileReader.onload = onReadFile;
 		fileReader.readAsDataURL(blob);
 	} else {
-		file = req.responseText;
+		file = this.responseText;
 		localStorage.setItem(name, file);
 		loadedFiles[name] = file;
 		cachedVersions[name] = version;
