@@ -132,6 +132,6 @@ function onFileReady(loadedFiles, cachedVersions) {
 		localStorage.setItem("cached-files", JSON.stringify(cachedVersions));
 		var img = new Image();
 		img.setAttribute("src", localStorage.getItem('img/man.jpg'));
-		document.body.innerHTML.appendChild(img);
+		document.body.appendChild(img);
 	}
 }
