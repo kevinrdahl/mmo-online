@@ -1,6 +1,5 @@
 var filePrefix = '';
 var fileInfo = null;
-var xmlhttp = new XMLHttpRequest();
 begin();
 
 function begin() {
@@ -10,7 +9,7 @@ function begin() {
 		alert ('Your browser does not support Web Storage.');
 		return;
 	}
-
+	var xmlhttp = new XMLHttpRequest();
 	xmlhttp.onload = onGetFileInfo;
 	xmlhttp.open("GET", filePrefix+"version/mmoo.txt", true);
 	xmlhttp.send();
@@ -18,8 +17,8 @@ function begin() {
 }
 
 function onGetFileInfo () {
-	if (xmlhttp.status == 200) {
-		fileInfo = JSON.parse(xmlhttp.responseText);
+	if (this.status == 200) {
+		fileInfo = JSON.parse(this.responseText);
 		loadFiles();
 	} else {
 		alert("Unable to retrieve file information from the server.");
@@ -131,5 +130,8 @@ function onFileReady(loadedFiles, cachedVersions) {
 		console.log("All files loaded!");
 		//update local version numbers
 		localStorage.setItem("cached-files", JSON.stringify(cachedVersions));
+		var img = new Image();
+		img.setAttribute("src", localStorage.getItem('img/man.jpg'));
+		document.body.innerHTML += img;
 	}
 }
