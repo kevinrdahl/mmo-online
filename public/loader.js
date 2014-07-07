@@ -36,8 +36,6 @@ function loadFiles() {
 		cachedVersions = {};
 	}
 
-	console.log(JSON.stringify(cachedVersions));
-
 	var files = fileInfo.info;
 	for (var i = 0; i < files.length; i++) {
 		var name = files[i][0];
@@ -72,6 +70,7 @@ function loadFiles() {
 			req.send();
 		}
 	}
+	onFileReady(loadedFiles, cachedVersions);
 }
 
 function onLoadFile() {
