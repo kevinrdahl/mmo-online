@@ -36,6 +36,8 @@ function loadFiles() {
 		cachedVersions = {};
 	}
 
+	console.log(JSON.stringify(cachedVersions));
+
 	var files = fileInfo.info;
 	for (var i = 0; i < files.length; i++) {
 		var name = files[i][0];
@@ -70,9 +72,6 @@ function loadFiles() {
 			req.send();
 		}
 	}
-
-	//update local version numbers
-	localStorage.setItem("cached-files", JSON.stringify(cachedVersions));
 }
 
 function onLoadFile() {
@@ -99,6 +98,7 @@ function onLoadFile() {
 		loadedFiles[name] = file;
 		cachedVersions[name] = version;
 		console.log(name + ' downloaded and cached');
+		onFileReady(loadedFiles, cachedVersions);
 	}
 
 
@@ -116,9 +116,10 @@ function onReadFile(event) {
 	loadedFiles[name] = result;
 	cachedVersions[name] = version;
 	console.log(name + ' downloaded and cached');
+	onFileReady(loadedFiles, cachedVersions);
 }
 
-function onFileReady(loadedFiles) {
+function onFileReady(loadedFiles, cachedVersions) {
 	var done = true;
 	for (filename in loadedFiles) {
 		if (loadedFiles[filename] == null) {
@@ -129,5 +130,7 @@ function onFileReady(loadedFiles) {
 
 	if (done) {
 		console.log("All files loaded!");
+		//update local version numbers
+		localStorage.setItem("cached-files", JSON.stringify(cachedVersions));
 	}
 }
