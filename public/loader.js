@@ -130,8 +130,5 @@ function onFileReady(loadedFiles, cachedVersions) {
 		console.log("All files loaded!");
 		//update local version numbers
 		localStorage.setItem("cached-files", JSON.stringify(cachedVersions));
-		var img = new Image();
-		img.setAttribute("src", localStorage.getItem('img/man.jpg'));
-		document.body.appendChild(img);
 	}
 }
