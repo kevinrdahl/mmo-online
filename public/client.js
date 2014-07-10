@@ -20,6 +20,7 @@ document.onclick = function(e) {e.preventDefault(); e.defaultPrevented = true; e
 window.onresize = setCanvasSize;
 
 var nextTick;
+var TICK_LEN = 33;
 
 var messages = [];
 var gameStep = -2;
@@ -485,25 +486,27 @@ function onTick() {
 	}
 	
 	if (pressed[keys['UP']]) {
-		camera[1] += CAMERA_SPEED;
-	}
-	if (pressed[keys['DOWN']]) {
 		camera[1] -= CAMERA_SPEED;
 	}
-	if (pressed[keys['LEFT']]) {
-		camera[0] += CAMERA_SPEED;
+	if (pressed[keys['DOWN']]) {
+		camera[1] += CAMERA_SPEED;
 	}
-	if (pressed[keys['RIGHT']]) {
+	if (pressed[keys['LEFT']]) {
 		camera[0] -= CAMERA_SPEED;
 	}
-	
-	drawFrame();
+	if (pressed[keys['RIGHT']]) {
+		camera[0] += CAMERA_SPEED;
+	}
 	
 	setTick();
 }
 
 function gameLogic() {
 	gameStep++;
+
+	for (id in entities) {
+		entities[id].coords = entities[id].nextcoords;
+	}
 
 	while (messages.length > 0) {
 		if (gameStep < messages[0][0]) {
@@ -547,23 +550,35 @@ function gameLogic() {
 			entity.nextcoords = LinAlg.pointOffset(entity.coords, angle, entity.stats.spd);
 		}
 	}
-	
-	for (id in entities) {
-		entities[id].coords = entities[id].nextcoords;
-	}
 }
 
 function drawFrame() {
+	var drawTime = new Date().getTime();
+	var tickProgress = 1 - ((nextTick-drawTime) / TICK_LEN);
+
 	context.clearRect(0,0,canvasWidth, canvasHeight);
 
 	//entities
 	for (id in entities) {
-		drawEntity(entities[id]);
+		var entity = entities[id];
+		var coords = entity.coords;
+		var nextcoords = entity.nextcoords;
+
+		if (coords == nextcoords) {
+			entity.drawcoords = worldToView(coords);
+		} else {
+			var angle = LinAlg.pointAngle(coords, nextcoords);
+			var dist = LinAlg.pointDist(coords, nextcoords) * tickProgress;
+			entity.drawcoords = worldToView(LinAlg.pointOffset(coords, angle, dist));
+		}
+
+		drawEntity(entity);
 	}
 	
 	//selection circles and health bars (want these always on top of entities)
 	for (id in entities) {
-		var coords = worldToView(entities[id].coords);
+		var coords = entities[id].drawcoords;
+
 		if (entities[id].selected) {
 			switch (entities[id].control) {
 				case 0: context.strokeStyle = rgbaString(COLOUR_SELF[HIGHLIGHT],1.0); break;
@@ -597,7 +612,7 @@ function drawFrame() {
 		}
 		context.fillStyle = "rgba(" + p.colour[0] + "," + p.colour[1] + "," + p.colour[2] + "," +
 							parseFloat(p.life)/p.lifetime + ")";
-		var coords = worldToView(entities[p.attach].coords);
+		var coords = entities[p.attach].drawcoords;
 		context.fillRect(coords[0]+p.x, coords[1]+p.y, p.width, p.height);
 		p.life--;
 		if (p.life == 0) {
@@ -621,6 +636,17 @@ function drawFrame() {
 		context.fillStyle = buttons[i].colour;
 		context.fillRect(buttons[i].coords[0]-24, buttons[i].coords[1]-24, 48,48);
 	}
+
+	//FPS
+	var thisDraw = new Date().getTime();
+	var fps = Math.round(1000 / (thisDraw - lastDraw));
+	lastDraw = thisDraw;
+
+	context.fillStyle = '#000000';
+	context.font = '14px Arial';
+	context.fillText(fps, canvasWidth-50, 25);
+
+	window.requestAnimationFrame(drawFrame);
 }
 
 function setTick() {
@@ -629,7 +655,7 @@ function setTick() {
 		wait = 0;
 	}
 	setTimeout(onTick,wait);
-	nextTick += 33;
+	nextTick += TICK_LEN;
 }
 
 function rollBack(steps) {
@@ -646,7 +672,7 @@ function rollBack(steps) {
 }
 
 function drawEntity (entity) {
-	var coords = worldToView(entity.coords);
+	var coords = entity.drawcoords;
 	var sprite = entity.sprite + '.jpg';
 	if (images[sprite][0]) {
 		//image loaded, draw that
@@ -686,11 +712,11 @@ function inRect(point, coords,width,height) {
 }
 
 function viewToWorld(coords) {
-	return [coords[0]-camera[0], coords[1]-camera[1]];
+	return [coords[0]+camera[0], coords[1]+camera[1]];
 }
 
 function worldToView(coords) {
-	return [coords[0]+camera[0], coords[1]+camera[1]];
+	return [coords[0]-camera[0], coords[1]-camera[1]];
 }
 
 function setCanvasSize() {
@@ -726,5 +752,7 @@ function getScrollbarWidth() {
 
 loadImages();
 
-nextTick = new Date().getTime()+33;
+nextTick = new Date().getTime()+TICK_LEN;
 onTick();
+var lastDraw = nextTick;
+window.requestAnimationFrame(drawFrame);
