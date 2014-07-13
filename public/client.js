@@ -677,7 +677,7 @@ function rollBack(steps) {
 function drawEntity (entity) {
 	var coords = entity.drawcoords;
 	var sprite = entity.sprite + '.jpg';
-	if (images[sprite]) {
+	if (sprite in images) {
 		//image exists, draw that
 		context.drawImage(images[sprite], coords[0]-24, coords[1]-24);
 	} else {
