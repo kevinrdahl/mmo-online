@@ -144,7 +144,7 @@ function onFileReady() {
 			LOADED.images[imagename] = LOADER.loadedFiles[imagename];
 		}
 		
-		var scripts = fineInfo.scripts;
+		var scripts = fileInfo.scripts;
 		for (var i = 0; i < scripts.length; i++) {
 			eval(LOADER.loadedFiles[scripts[i]]);
 		}

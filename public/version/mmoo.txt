@@ -1,7 +1,7 @@
 {
 	"info":[
 		["script/LinAlg.js", "txt", 2],
-		["script/client.js", "txt", 2],
+		["script/client.js", "txt", 3],
 		["img/man.jpg", "image/jpg", 2],
 		["img/bear.jpg", "image/jpg", 2]
 	],
