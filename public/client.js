@@ -223,10 +223,10 @@ function readMessage(msg) {
 		//id = msg[1];
 		//coords = msg[2];
 		//dest = msg[3]
-		entities[msg[1]].coords = msg[2];
+		setEntityCoords(msg[1], msg[2]);
 		entities[msg[1]].order = [msg[0], msg[3]];
 	} else if (msg[0] == 'stop') {
-		entities[msg[1]].coords = msg[2];
+		setEntityCoords(msg[1], msg[2]);
 		entities[msg[1]].order = ['stop'];
 	} else if (msg[0] == 'see') {
 		//id = msg[1]
@@ -442,6 +442,12 @@ function damageEntity(id, amount) {
 		case 3: colour = COLOUR_HOSTILE[DAMAGE];
 	}
 	particles.push({attach:id, x:x, y:y, width:width, height:height, colour:colour, life:15, lifetime:15});
+}
+
+function setEntityCoords(id, coords) {
+	entity = entities[id];
+	entity.coords = coords;
+	entity.nextcoords = coords;
 }
 
 function onTick() {
