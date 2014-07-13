@@ -92,19 +92,19 @@ function onDisconnect() {
 }
 
 function onTick() {
-	for (id in entities) {
-		if (entities[id].control == 'bears') {
-			bearAI(id);
-		}
-		entityStep(id);
-	}
-	
-	//now set coords to nextcoords
+	gameStep++;
+
+	//set coords to nextcoords
 	for (id in entities) {
 		entities[id].coords = entities[id].nextCoords;
 	}
 	
-	gameStep++;
+	for (id in entities) {
+		if (entities[id].control == 'bears') {
+			bearAI(id);
+		}
+		entityStep(id, true);
+	}
 	
 	var wait = nextTick - new Date().getTime();
 	if (wait < 0) {
@@ -114,10 +114,10 @@ function onTick() {
 	nextTick += 33;
 }
 
-function entityStep (id) {
+function entityStep (id, firstCall) {
 	var entity = entities[id];
 	
-	if (entity.attacking > 0) {
+	if (firstCall && entity.attacking > 0) {
 		entity.attacking--;
 	}
 	
@@ -132,7 +132,7 @@ function entityStep (id) {
 		//dest is an entity
 		if (!(dest in entities)) {
 			finishAction(id);
-			entityStep(id);
+			entityStep(id,false);
 			return;
 		}
 		dest = entities[dest].coords;
@@ -143,7 +143,7 @@ function entityStep (id) {
 		if (LinAlg.pointDist(entity.coords, dest) > 48) {
 			//place move action at front
 			entity.actions.unshift([['move', action[1], 46],false]);
-			entityStep(id);
+			entityStep(id,false);
 			return;
 		}
 	}
