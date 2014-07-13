@@ -48,9 +48,7 @@ for (key in keys) {
 	pressed[keys[key]] = false;
 }
 
-var imageList = ['bear.jpg', 'man.jpg'];
-var images = new Object();
-var numLoaded = 0;
+var images = LOADED.images;
 
 var MOUSE_DRAG_MIN = 5;
 var mouseCoords;
@@ -75,7 +73,7 @@ var COLOUR_FRIENDLY = [[0,0,255], [0,0,180], [200,200,255]];
 var COLOUR_NEUTRAL = [[255,255,0], [180,180,0], [255,255,200]];
 var COLOUR_HOSTILE = [[255,0,0], [180,0,0], [255,200,200]];
 
-function imageLoaded () {
+/*function imageLoaded () {
 	var str = this.src.substring(imgPrefix.length);
 	images[str][0] = true;
 	chatLog(str);
@@ -94,7 +92,7 @@ function loadImages() {
 		images[imageList[i]] = [false, image];
 		image.src = imgPrefix + imageList[i];
 	}
-}
+}*/
 
 function openConnection() {
 	socket = io.connect(socketURL, {port: socketPort, transports: ["websocket"]});
@@ -679,9 +677,9 @@ function rollBack(steps) {
 function drawEntity (entity) {
 	var coords = entity.drawcoords;
 	var sprite = entity.sprite + '.jpg';
-	if (images[sprite][0]) {
-		//image loaded, draw that
-		context.drawImage(images[sprite][1], coords[0]-24, coords[1]-24);
+	if (images[sprite]) {
+		//image exists, draw that
+		context.drawImage(images[sprite], coords[0]-24, coords[1]-24);
 	} else {
 		//draw a rectangle
 		context.fillStyle = "rgba(100,100,100,1.0)";
@@ -755,10 +753,12 @@ function getScrollbarWidth() {
     return widthNoScroll - widthWithScroll;
 }
 
-loadImages();
+//loadImages();
 
 nextTick = new Date().getTime()+TICK_LEN;
 onTick();
 var lastDraw = nextTick;
 window.requestAnimationFrame(drawFrame);
 
+gameStep = -1;
+openConnection();

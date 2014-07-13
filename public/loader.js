@@ -1,3 +1,14 @@
+var LOADED = {
+	images:{}
+};
+
+var LOADER = {
+	filePrefix:"",
+	fileInfo:null,
+	loadedFiles:{},
+	cachedVersions:localStorage.getItem("cached-files");
+};
+
 var filePrefix = '';
 var fileInfo = null;
 begin();
@@ -26,13 +37,11 @@ function onGetFileInfo () {
 }
 
 function loadFiles() {
-	var cachedVersions = localStorage.getItem("cached-files");
-	var loadedFiles = {};
-	if (cachedVersions != null) {
-		cachedVersions = JSON.parse(cachedVersions);
+	if (LOADER.cachedVersions != null) {
+		LOADER.cachedVersions = JSON.parse(LOADER.cachedVersions);
 	} else {
 		console.log("No files cached");
-		cachedVersions = {};
+		LOADER.cachedVersions = {};
 	}
 
 	var files = fileInfo.info;
@@ -42,13 +51,13 @@ function loadFiles() {
 		var version = files[i][2];
 		var needLoad = true;
 
-		loadedFiles[name] = null;
+		LOADER.loadedFiles[name] = null;
 
-		if (name in cachedVersions) {
-			if (cachedVersions[name] == version) {
+		if (name in LOADER.cachedVersions) {
+			if (LOADER.cachedVersions[name] == version) {
 				//file already up to date
 				needLoad = false
-				loadedFiles[name] = localStorage.getItem(name);
+				LOADER.loadedFiles[name] = localStorage.getItem(name);
 				console.log(name + ' is already up to date.');
 			} else {
 				console.log(name + ' is not up to date.');
@@ -61,7 +70,7 @@ function loadFiles() {
 			//http request the script, and store it
 			var req = new XMLHttpRequest();
 			req.open("GET", filePrefix+name, true);
-			req.props = {name:name, type:type, version:version, loadedFiles:loadedFiles, cachedVersions:cachedVersions};
+			req.props = {name:name, type:type, version:version};
 			req.onload = onLoadFile;
 			if (type.substring(0,5) == "image") {
 				req.responseType = "arraybuffer";
@@ -69,7 +78,7 @@ function loadFiles() {
 			req.send();
 		}
 	}
-	onFileReady(loadedFiles, cachedVersions);
+	onFileReady();
 }
 
 function onLoadFile() {
@@ -81,8 +90,6 @@ function onLoadFile() {
 	var name = this.props.name;
 	var type = this.props.type;
 	var version = this.props.version;
-	var loadedFiles = this.props.loadedFiles;
-	var cachedVersions = this.props.cachedVersions;
 
 	if (type.substring(0,5) == "image") {
 		var blob = new Blob([this.response], {type:type});
@@ -93,10 +100,10 @@ function onLoadFile() {
 	} else {
 		file = this.responseText;
 		localStorage.setItem(name, file);
-		loadedFiles[name] = file;
-		cachedVersions[name] = version;
+		LOADER.loadedFiles[name] = file;
+		LOADER.cachedVersions[name] = version;
 		console.log(name + ' downloaded and cached');
-		onFileReady(loadedFiles, cachedVersions);
+		onFileReady();
 	}
 
 
@@ -106,21 +113,19 @@ function onReadFile(event) {
 	var name = this.props.name;
 	var type = this.props.type;
 	var version = this.props.version;
-	var loadedFiles = this.props.loadedFiles;
-	var cachedVersions = this.props.cachedVersions;
 
 	var result = event.target.result;
 	localStorage.setItem(name, result);
-	loadedFiles[name] = result;
-	cachedVersions[name] = version;
+	LOADER.loadedFiles[name] = result;
+	LOADER.cachedVersions[name] = version;
 	console.log(name + ' downloaded and cached');
-	onFileReady(loadedFiles, cachedVersions);
+	onFileReady();
 }
 
-function onFileReady(loadedFiles, cachedVersions) {
+function onFileReady() {
 	var done = true;
-	for (filename in loadedFiles) {
-		if (loadedFiles[filename] == null) {
+	for (filename in LOADER.loadedFiles) {
+		if (LOADER.loadedFiles[filename] == null) {
 			done = false;
 			break;
 		}
@@ -129,6 +134,17 @@ function onFileReady(loadedFiles, cachedVersions) {
 	if (done) {
 		console.log("All files loaded!");
 		//update local version numbers
-		localStorage.setItem("cached-files", JSON.stringify(cachedVersions));
+		localStorage.setItem("cached-files", JSON.stringify(LOADER.cachedVersions));
+		
+		var images = fileInfo.images;
+		for (var i = 0; i < images.length; i++) {
+			var imagename = images[i];
+			LOADED.images[imagename] = LOADER.loadedFiles[imagename];
+		}
+		
+		var scripts = fineInfo.scripts;
+		for (var i = 0; i < scripts.length; i++) {
+			eval(LOADER.loadedFiles[scripts[i]]);
+		}
 	}
 }
