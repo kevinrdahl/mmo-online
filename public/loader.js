@@ -141,7 +141,9 @@ function onFileReady() {
 		var images = fileInfo.images;
 		for (var i = 0; i < images.length; i++) {
 			var imagename = images[i];
-			LOADED.images[imagename] = LOADER.loadedFiles[imagename];
+			var image = new Image();
+			image.src = LOADER.loadedFiles[imagename];
+			LOADED.images[imagename] = image;
 		}
 		
 		var scripts = fileInfo.scripts;
