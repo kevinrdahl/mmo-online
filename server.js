@@ -155,11 +155,17 @@ function entityStep (id, firstCall) {
 			var msg = actionString(id, action);
 			broadcast(msg);
 		}
-	
-		if (LinAlg.pointDist(entity.coords,dest)-action[2] <= entity.stats.spd) {
-			var angle = LinAlg.pointAngle(dest, entity.coords);
-			entity.nextCoords = LinAlg.pointOffset(dest, angle, action[2]);
+		
+		var range = action[2];
+		var distRemaining = LinAlg.pointDist(entity.coords,dest)-range;
+		
+		//float imprecision is likely to occur, play it safe
+		if (distRemaining <= 0.1) {
 			finishAction(id);
+			entityStep(id, false);
+		} else if (distRemaining <= entity.stats.spd) {
+			var angle = LinAlg.pointAngle(dest, entity.coords);
+			entity.nextCoords = LinAlg.pointOffset(dest, angle, range);
 		} else {
 			var angle = LinAlg.pointAngle(entity.coords, dest);
 			entity.nextCoords = LinAlg.pointOffset(entity.coords, angle, entity.stats.spd);
@@ -219,7 +225,6 @@ function finishAction (id) {
 	entity.actions.shift();
 	
 	if (entity.actions.length == 0) {
-		entity.coords = entity.nextCoords;
 		var msg = JSON.stringify([gameStep, 'stop', id, entities[id].coords]);
 		broadcast(msg);
 	}
