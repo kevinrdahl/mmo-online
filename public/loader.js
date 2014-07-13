@@ -8,7 +8,7 @@ var LOADER = {
 	filePrefix:"",
 	fileInfo:null,
 	loadedFiles:{},
-	cachedVersions:localStorage.getItem("cached-files");
+	cachedVersions:localStorage.getItem("cached-files")
 };
 
 var filePrefix = '';
