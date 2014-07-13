@@ -219,6 +219,7 @@ function finishAction (id) {
 	entity.actions.shift();
 	
 	if (entity.actions.length == 0) {
+		entity.coords = entity.nextCoords;
 		var msg = JSON.stringify([gameStep, 'stop', id, entities[id].coords]);
 		broadcast(msg);
 	}
