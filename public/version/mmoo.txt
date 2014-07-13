@@ -1,0 +1,6 @@
+{
+	"info":[
+		["script/client.js", "txt", 1],
+		["img/man.jpg", "image/jpg", 1]
+	]
+}
