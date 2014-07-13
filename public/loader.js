@@ -1,3 +1,5 @@
+console.log("----LOADING----");
+
 var LOADED = {
 	images:{}
 };
