@@ -755,10 +755,10 @@ function getScrollbarWidth() {
 
 //loadImages();
 
+gameStep = -1;
 nextTick = new Date().getTime()+TICK_LEN;
 onTick();
 var lastDraw = nextTick;
 window.requestAnimationFrame(drawFrame);
 
-gameStep = -1;
 openConnection();
