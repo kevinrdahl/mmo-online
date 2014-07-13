@@ -224,7 +224,8 @@ function readMessage(msg) {
 		//id = msg[1];
 		//coords = msg[2];
 		//dest = msg[3]
-		setEntityCoords(msg[1], msg[2]);
+		//   setEntityCoords(msg[1], msg[2]);
+		entities[msg[1]].coords = msg[2];
 		entities[msg[1]].order = [msg[0], msg[3]];
 	} else if (msg[0] == 'stop') {
 		setEntityCoords(msg[1], msg[2]);
@@ -235,7 +236,7 @@ function readMessage(msg) {
 		//coords = msg[3]
 		//sprite = msg[4]
 		//stats = msg[5]
-		entities[msg[1]] = {control:msg[2], coords:msg[3], nextcoords:msg[3], sprite:msg[4],
+		entities[msg[1]] = {control:msg[2], coords:msg[3], nextcoords:msg[3], drawcoords:msg[3], lastdrawcoords:msg[3], sprite:msg[4],
 							stats:msg[5], selected:false, order:['stop']};
 	} else if (msg[0] == 'unsee') {
 		//id = msg[1]
@@ -506,6 +507,7 @@ function gameLogic() {
 
 	for (id in entities) {
 		entities[id].coords = entities[id].nextcoords;
+		entities[id].lastdrawcoords = entities[id].drawcoords;
 	}
 
 	while (messages.length > 0) {
@@ -544,7 +546,6 @@ function gameLogic() {
 		
 		if (LinAlg.pointDist(entity.coords, dest) <= entity.stats.spd) {
 			entity.nextcoords = dest;
-			entity.dest = entity.nextcoords;
 		} else {
 			angle = LinAlg.pointAngle(entity.coords, dest);
 			entity.nextcoords = LinAlg.pointOffset(entity.coords, angle, entity.stats.spd);
@@ -561,7 +562,7 @@ function drawFrame() {
 	//entities
 	for (id in entities) {
 		var entity = entities[id];
-		var coords = entity.coords;
+		var coords = entity.lastdrawcoords;
 		var nextcoords = entity.nextcoords;
 
 		if (coords == nextcoords) {
