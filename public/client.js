@@ -49,7 +49,6 @@ for (key in keys) {
 }
 
 var images = LOADED.images;
-console.log(JSON.stringify(images));
 
 var MOUSE_DRAG_MIN = 5;
 var mouseCoords;
