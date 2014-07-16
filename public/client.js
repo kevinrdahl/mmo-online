@@ -567,14 +567,13 @@ function drawFrame() {
 		var coords = entity.coords;
 		var nextcoords = entity.nextcoords;
 
-		/*if (coords == nextcoords) {
+		if (coords == nextcoords) {
 			entity.drawcoords = worldToView(coords);
 		} else {
 			var angle = LinAlg.pointAngle(coords, nextcoords);
 			var dist = LinAlg.pointDist(coords, nextcoords) * tickProgress;
 			entity.drawcoords = worldToView(LinAlg.pointOffset(coords, angle, dist));
-		}*/
-		entity.drawcoords = entity.coords;
+		}
 
 		drawEntity(entity);
 	}
@@ -720,7 +719,7 @@ function viewToWorld(coords) {
 }
 
 function worldToView(coords) {
-	return [coords[0]-camera[0], coords[1]-camera[1]];
+	return [Math.round(coords[0]-camera[0]), Math.round(coords[1]-camera[1])];
 }
 
 function setCanvasSize() {
