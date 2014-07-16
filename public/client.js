@@ -567,13 +567,14 @@ function drawFrame() {
 		var coords = entity.coords;
 		var nextcoords = entity.nextcoords;
 
-		if (coords == nextcoords) {
+		/*if (coords == nextcoords) {
 			entity.drawcoords = worldToView(coords);
 		} else {
 			var angle = LinAlg.pointAngle(coords, nextcoords);
 			var dist = LinAlg.pointDist(coords, nextcoords) * tickProgress;
 			entity.drawcoords = worldToView(LinAlg.pointOffset(coords, angle, dist));
-		}
+		}*/
+		entity.drawcoords = entity.coords;
 
 		drawEntity(entity);
 	}
