@@ -558,13 +558,14 @@ function gameLogic() {
 function drawFrame() {
 	var drawTime = new Date().getTime();
 	var tickProgress = ((nextTick-drawTime) / TICK_LEN);
-	console.log('(' + nextTick + ' - ' + drawTime + ') / ' + TICK_LEN + ' = ' + tickProgress);
 	
-	/*if (tickProgress < 0) {
+	if (tickProgress < 0) {
+		console.log('(' + nextTick + ' - ' + drawTime + ') / ' + TICK_LEN + ' = ' + tickProgress);
 		tickProgress = 0;
 	} else if (tickProgress > 1) {
+		console.log('(' + nextTick + ' - ' + drawTime + ') / ' + TICK_LEN + ' = ' + tickProgress);
 		tickProgress = 1;
-	}*/
+	}
 
 	context.clearRect(0,0,canvasWidth, canvasHeight);
 
