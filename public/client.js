@@ -555,8 +555,8 @@ function gameLogic() {
 
 function drawFrame() {
 	var drawTime = new Date().getTime();
-	var tickProgress = ((nextTick-drawTime) / TICK_LEN) - 1;
-	console.log(tickProgress);//console.log('(' + nextTick + ' - ' + drawTime + ') / ' + TICK_LEN + ' = ' + tickProgress);
+	var tickProgress = ((nextTick-drawTime) / TICK_LEN);
+	console.log('(' + nextTick + ' - ' + drawTime + ') / ' + TICK_LEN + ' = ' + tickProgress);
 	if (tickProgress < 0) {
 		tickProgress = 0;
 	} else if (tickProgress > 1) {
