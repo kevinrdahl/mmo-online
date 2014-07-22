@@ -453,6 +453,8 @@ function setEntityCoords(id, coords) {
 }
 
 function onTick() {
+	nextTick += TICK_LEN;
+	
 	if (gameStep == -2) {
 		//loading screen
 		context.clearRect(0,0,canvasWidth, canvasHeight);
@@ -557,11 +559,12 @@ function drawFrame() {
 	var drawTime = new Date().getTime();
 	var tickProgress = ((nextTick-drawTime) / TICK_LEN);
 	console.log('(' + nextTick + ' - ' + drawTime + ') / ' + TICK_LEN + ' = ' + tickProgress);
-	if (tickProgress < 0) {
+	
+	/*if (tickProgress < 0) {
 		tickProgress = 0;
 	} else if (tickProgress > 1) {
 		tickProgress = 1;
-	}
+	}*/
 
 	context.clearRect(0,0,canvasWidth, canvasHeight);
 
@@ -662,7 +665,6 @@ function setTick() {
 		wait = 0;
 	}
 	setTimeout(onTick,wait);
-	nextTick += TICK_LEN;
 }
 
 function rollBack(steps) {
