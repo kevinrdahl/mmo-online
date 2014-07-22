@@ -453,8 +453,6 @@ function setEntityCoords(id, coords) {
 }
 
 function onTick() {
-	nextTick += TICK_LEN;
-	
 	if (gameStep == -2) {
 		//loading screen
 		context.clearRect(0,0,canvasWidth, canvasHeight);
@@ -501,6 +499,7 @@ function onTick() {
 		camera[0] += CAMERA_SPEED;
 	}
 	
+	nextTick += TICK_LEN;
 	setTick();
 }
 
