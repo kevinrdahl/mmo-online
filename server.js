@@ -9,6 +9,7 @@ var entities = {};
 
 var entityNum = 0;
 var gameStep = 100;
+var stepTime = new Date().getTime();
 var nextTick;
 
 
@@ -34,9 +35,12 @@ function broadcast(msg) {
 function onMessage(data) {
 	var msg = JSON.parse(data);
 	
-	//don't want pings logged
+	//don't want these logged
 	if (msg[0] == 'ping') {
 		this.send(JSON.stringify([gameStep, 'ping']));
+		return;
+	} else if (msg[0] == 'time') {
+		this.send(JSON.stringify([gameStep, 'time', stepTime]));
 		return;
 	}
 
@@ -93,6 +97,7 @@ function onDisconnect() {
 
 function onTick() {
 	gameStep++;
+	stepTime = new Date().getTime();
 
 	//set coords to nextcoords
 	for (id in entities) {

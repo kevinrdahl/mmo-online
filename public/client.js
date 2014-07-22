@@ -82,17 +82,20 @@ var COLOUR_HOSTILE = [[255,0,0], [180,0,0], [255,200,200]];
 		gameStep = -1;
 		openConnection();
 	}
-}
+}*/
 
 function loadImages() {
 	console.log('loading images');
-	for (var i = 0; i < imageList.length; i++) {
+	imgs = {'img/man.jpg':'http://kevinstuff.net/img/man.jpg', 'img/bear.jpg':'http://kevinstuff.net/img/bear.jpg'};
+	for (imgname in imgs) {
 		var image = new Image();
-		image.onload = imageLoaded;
-		images[imageList[i]] = [false, image];
-		image.src = imgPrefix + imageList[i];
+		image.imgname = imgname;
+		image.onload = function() {
+			images[this.imgname] = this;
+		}
+		image.src = imgs[imgname];
 	}
-}*/
+}
 
 function openConnection() {
 	socket = io.connect(socketURL, {port: socketPort, transports: ["websocket"]});
@@ -719,7 +722,7 @@ function viewToWorld(coords) {
 }
 
 function worldToView(coords) {
-	return [Math.round(coords[0]-camera[0]), Math.round(coords[1]-camera[1])];
+	return [coords[0]-camera[0], coords[1]-camera[1]];
 }
 
 function setCanvasSize() {
@@ -753,7 +756,7 @@ function getScrollbarWidth() {
     return widthNoScroll - widthWithScroll;
 }
 
-//loadImages();
+loadImages();
 
 gameStep = -1;
 nextTick = new Date().getTime()+TICK_LEN;
