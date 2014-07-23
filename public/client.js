@@ -48,7 +48,7 @@ for (key in keys) {
 	pressed[keys[key]] = false;
 }
 
-var images = {};//LOADED.images;
+var images = LOADED.images;
 
 var MOUSE_DRAG_MIN = 5;
 var mouseCoords;
@@ -759,7 +759,7 @@ function getScrollbarWidth() {
     return widthNoScroll - widthWithScroll;
 }
 
-loadImages();
+//loadImages();
 
 gameStep = -1;
 nextTick = new Date().getTime()+TICK_LEN;

@@ -7,13 +7,17 @@ var LOADED = {
 var LOADER = {
 	filePrefix:"",
 	fileInfo:null,
+	loadDiv:document.createElement('div');
 	loadedFiles:{},
 	cachedVersions:localStorage.getItem("cached-files")
 };
 
-var filePrefix = '';
-var fileInfo = null;
+document.getElementsByTagName('body')[0].appendChild(loadDiv);
+
 begin();
+
+var canvas = document.getElementById('gameview');
+var context = canvas.getContext('2d');
 
 function begin() {
 	if(typeof(Storage) !== "undefined") {
@@ -54,12 +58,16 @@ function loadFiles() {
 		var type = files[i][1];
 		var version = files[i][2];
 		var needLoad = true;
+		var loadSpan = document.createElement('span');
+		loadSpan.setAttribute('id', name);
+		loadSpan.innerHTML = name;
 
 		LOADER.loadedFiles[name] = null;
 
 		if (name in LOADER.cachedVersions) {
 			if (LOADER.cachedVersions[name] == version) {
 				//file already up to date
+				loadSpan.setAttribute('class', 'loaded');
 				needLoad = false
 				LOADER.loadedFiles[name] = localStorage.getItem(name);
 				console.log(name + ' is already up to date.');
@@ -71,6 +79,8 @@ function loadFiles() {
 		}
 
 		if (needLoad) {
+			loadSpan.setAttribute('class', 'loading');
+		
 			//http request the script, and store it
 			var req = new XMLHttpRequest();
 			req.open("GET", filePrefix+name, true);
@@ -81,13 +91,15 @@ function loadFiles() {
 			}
 			req.send();
 		}
+		
+		LOADER.loadDiv.appendChild(loadSpan);
 	}
 	onFileReady();
 }
 
 function onLoadFile() {
 	if (this.status != 200) {
-		alert("Unable to retrieve file '" + name + "' status " + this.status);
+		alert("Unable to retrieve file '" + this.props.name + "' status " + this.status);
 		return;
 	}
 
@@ -107,7 +119,7 @@ function onLoadFile() {
 		LOADER.loadedFiles[name] = file;
 		LOADER.cachedVersions[name] = version;
 		console.log(name + ' downloaded and cached');
-		onFileReady();
+		onFileReady(name);
 	}
 
 
@@ -123,10 +135,12 @@ function onReadFile(event) {
 	LOADER.loadedFiles[name] = result;
 	LOADER.cachedVersions[name] = version;
 	console.log(name + ' downloaded and cached');
-	onFileReady();
+	onFileReady(name);
 }
 
-function onFileReady() {
+function onFileReady(name) {
+	document.getElementById(name).setAttribute('class', 'loaded');
+
 	var done = true;
 	for (filename in LOADER.loadedFiles) {
 		if (LOADER.loadedFiles[filename] == null) {
@@ -137,8 +151,27 @@ function onFileReady() {
 
 	if (done) {
 		console.log("All files loaded!");
+		document.getElementsByTagName('body')[0].removeChild(LOADER.loadDiv);
 		//update local version numbers
 		localStorage.setItem("cached-files", JSON.stringify(LOADER.cachedVersions));
+		
+		var cssFiles = fileInfo.css;
+		for (var i = 0; i < cssFiles.length; i++) {
+			var filename = cssFiles[i];
+			var head = document.getElementsByTagName('head')[0];
+			var style = document.createElement('style');
+			style.type = "text/css";
+			style.appendChild(document.createTextNode(LOADER.loadedFiles[filename]));
+			head.appendChild(style);
+		}
+		
+		var htmlFiles = fileInfo.html;
+		var aVeryLongString = '';
+		for (var i = 0; i < htmlFiles.length; i++) {
+			var filename = htmlFiles[i];
+			aVeryLongString += LOADER.loadedFiles[filename];
+		}
+		document.getElementsByTagName('body')[0].innerHTML += aVeryLongString;
 		
 		var images = fileInfo.images;
 		for (var i = 0; i < images.length; i++) {

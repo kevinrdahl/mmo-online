@@ -1,0 +1,52 @@
+html,body {
+	height:100%;
+	padding:0;
+	margin:0;
+	overflow-x:hidden;
+	overflow-y:hidden;
+	font-size:small;
+}
+#gameview {
+	margin:0;
+	padding:0;
+}
+#gameouter {
+	border-right:1px solid black;
+	box-sizing:border-box;
+	-moz-box-sizing:border-box;
+	-webkit-box-sizing:border-box;
+	margin:0;
+	padding:0;
+	position:fixed;
+	left:0;
+	top:0;
+	width:calc(100% - 300px);
+	height:100%;
+}
+#log {
+	width:100%;
+	height:calc(100% - 24px);
+	overflow-y:scroll;
+	padding:0;
+	word-wrap: break-word;
+}
+#logouter {
+	float:right;
+	width:300px;
+	height:100%;
+	margin:0;
+	padding:0;
+}
+#chat {
+	width:100%;
+	margin:0;
+	padding:0;
+}
+.loading {
+	color:#FFFFFF;
+	background-color:#AA0000;
+}
+.loaded {
+	color:#FFFFFF;
+	background-color:#00AA00;
+}
