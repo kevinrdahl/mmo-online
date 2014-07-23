@@ -20,6 +20,7 @@ document.onclick = function(e) {e.preventDefault(); e.defaultPrevented = true; e
 window.onresize = setCanvasSize;
 
 var nextTick;
+var TICK_LEN = 33;
 
 var messages = [];
 var gameStep = -2;
@@ -47,9 +48,7 @@ for (key in keys) {
 	pressed[keys[key]] = false;
 }
 
-var imageList = ['bear.jpg', 'man.jpg'];
-var images = new Object();
-var numLoaded = 0;
+var images = LOADED.images;
 
 var MOUSE_DRAG_MIN = 5;
 var mouseCoords;
@@ -74,7 +73,7 @@ var COLOUR_FRIENDLY = [[0,0,255], [0,0,180], [200,200,255]];
 var COLOUR_NEUTRAL = [[255,255,0], [180,180,0], [255,255,200]];
 var COLOUR_HOSTILE = [[255,0,0], [180,0,0], [255,200,200]];
 
-function imageLoaded () {
+/*function imageLoaded () {
 	var str = this.src.substring(imgPrefix.length);
 	images[str][0] = true;
 	chatLog(str);
@@ -83,15 +82,18 @@ function imageLoaded () {
 		gameStep = -1;
 		openConnection();
 	}
-}
+}*/
 
 function loadImages() {
 	console.log('loading images');
-	for (var i = 0; i < imageList.length; i++) {
+	imgs = {'img/man.jpg':'http://kevinstuff.net/img/man.jpg', 'img/bear.jpg':'http://kevinstuff.net/img/bear.jpg'};
+	for (imgname in imgs) {
 		var image = new Image();
-		image.onload = imageLoaded;
-		images[imageList[i]] = [false, image];
-		image.src = imgPrefix + imageList[i];
+		image.imgname = imgname;
+		image.onload = function() {
+			images[this.imgname] = this;
+		}
+		image.src = imgs[imgname];
 	}
 }
 
@@ -485,25 +487,28 @@ function onTick() {
 	}
 	
 	if (pressed[keys['UP']]) {
-		camera[1] += CAMERA_SPEED;
-	}
-	if (pressed[keys['DOWN']]) {
 		camera[1] -= CAMERA_SPEED;
 	}
-	if (pressed[keys['LEFT']]) {
-		camera[0] += CAMERA_SPEED;
+	if (pressed[keys['DOWN']]) {
+		camera[1] += CAMERA_SPEED;
 	}
-	if (pressed[keys['RIGHT']]) {
+	if (pressed[keys['LEFT']]) {
 		camera[0] -= CAMERA_SPEED;
 	}
+	if (pressed[keys['RIGHT']]) {
+		camera[0] += CAMERA_SPEED;
+	}
 	
-	drawFrame();
-	
+	nextTick += TICK_LEN;
 	setTick();
 }
 
 function gameLogic() {
 	gameStep++;
+
+	for (id in entities) {
+		entities[id].coords = entities[id].nextcoords;
+	}
 
 	while (messages.length > 0) {
 		if (gameStep < messages[0][0]) {
@@ -547,23 +552,43 @@ function gameLogic() {
 			entity.nextcoords = LinAlg.pointOffset(entity.coords, angle, entity.stats.spd);
 		}
 	}
-	
-	for (id in entities) {
-		entities[id].coords = entities[id].nextcoords;
-	}
 }
 
 function drawFrame() {
+	var drawTime = new Date().getTime();
+	var tickProgress = 1 - ((nextTick-drawTime) / TICK_LEN);
+	
+	if (tickProgress < 0) {
+		console.log('(' + nextTick + ' - ' + drawTime + ') / ' + TICK_LEN + ' = ' + tickProgress);
+		tickProgress = 0;
+	} else if (tickProgress > 1) {
+		console.log('(' + nextTick + ' - ' + drawTime + ') / ' + TICK_LEN + ' = ' + tickProgress);
+		tickProgress = 1;
+	}
+
 	context.clearRect(0,0,canvasWidth, canvasHeight);
 
 	//entities
 	for (id in entities) {
-		drawEntity(entities[id]);
+		var entity = entities[id];
+		var coords = entity.coords;
+		var nextcoords = entity.nextcoords;
+
+		if (coords == nextcoords) {
+			entity.drawcoords = worldToView(coords);
+		} else {
+			var angle = LinAlg.pointAngle(coords, nextcoords);
+			var dist = LinAlg.pointDist(coords, nextcoords) * tickProgress;
+			entity.drawcoords = worldToView(LinAlg.pointOffset(coords, angle, dist));
+		}
+
+		drawEntity(entity);
 	}
 	
 	//selection circles and health bars (want these always on top of entities)
 	for (id in entities) {
-		var coords = worldToView(entities[id].coords);
+		var coords = entities[id].drawcoords;
+
 		if (entities[id].selected) {
 			switch (entities[id].control) {
 				case 0: context.strokeStyle = rgbaString(COLOUR_SELF[HIGHLIGHT],1.0); break;
@@ -597,7 +622,7 @@ function drawFrame() {
 		}
 		context.fillStyle = "rgba(" + p.colour[0] + "," + p.colour[1] + "," + p.colour[2] + "," +
 							parseFloat(p.life)/p.lifetime + ")";
-		var coords = worldToView(entities[p.attach].coords);
+		var coords = entities[p.attach].drawcoords;
 		context.fillRect(coords[0]+p.x, coords[1]+p.y, p.width, p.height);
 		p.life--;
 		if (p.life == 0) {
@@ -621,6 +646,17 @@ function drawFrame() {
 		context.fillStyle = buttons[i].colour;
 		context.fillRect(buttons[i].coords[0]-24, buttons[i].coords[1]-24, 48,48);
 	}
+
+	//FPS
+	var thisDraw = new Date().getTime();
+	var fps = Math.round(1000 / (thisDraw - lastDraw));
+	lastDraw = thisDraw;
+
+	context.fillStyle = '#000000';
+	context.font = '14px Arial';
+	context.fillText(fps, canvasWidth-50, 25);
+
+	window.requestAnimationFrame(drawFrame);
 }
 
 function setTick() {
@@ -629,7 +665,6 @@ function setTick() {
 		wait = 0;
 	}
 	setTimeout(onTick,wait);
-	nextTick += 33;
 }
 
 function rollBack(steps) {
@@ -646,11 +681,11 @@ function rollBack(steps) {
 }
 
 function drawEntity (entity) {
-	var coords = worldToView(entity.coords);
-	var sprite = entity.sprite + '.jpg';
-	if (images[sprite][0]) {
-		//image loaded, draw that
-		context.drawImage(images[sprite][1], coords[0]-24, coords[1]-24);
+	var coords = entity.drawcoords;
+	var sprite = 'img/' + entity.sprite + '.jpg';
+	if (sprite in images) {
+		//image exists, draw that
+		context.drawImage(images[sprite], coords[0]-24, coords[1]-24, 48, 48);
 	} else {
 		//draw a rectangle
 		context.fillStyle = "rgba(100,100,100,1.0)";
@@ -686,11 +721,11 @@ function inRect(point, coords,width,height) {
 }
 
 function viewToWorld(coords) {
-	return [coords[0]-camera[0], coords[1]-camera[1]];
+	return [coords[0]+camera[0], coords[1]+camera[1]];
 }
 
 function worldToView(coords) {
-	return [coords[0]+camera[0], coords[1]+camera[1]];
+	return [coords[0]-camera[0], coords[1]-camera[1]];
 }
 
 function setCanvasSize() {
@@ -724,7 +759,12 @@ function getScrollbarWidth() {
     return widthNoScroll - widthWithScroll;
 }
 
-loadImages();
+//loadImages();
 
-nextTick = new Date().getTime()+33;
+gameStep = -1;
+nextTick = new Date().getTime()+TICK_LEN;
 onTick();
+var lastDraw = nextTick;
+window.requestAnimationFrame(drawFrame);
+
+openConnection();
