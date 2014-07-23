@@ -89,7 +89,7 @@ function loadFiles() {
 		
 		LOADER.loadDiv.appendChild(loadItem);
 	}
-	onFileReady();
+	onFileReady('');
 }
 
 function onLoadFile() {
@@ -134,7 +134,9 @@ function onReadFile(event) {
 }
 
 function onFileReady(name) {
-	document.getElementById(name).setAttribute('class', 'loaded');
+	if (name != '') {
+		document.getElementById(name).setAttribute('class', 'loaded');
+	}
 
 	var done = true;
 	for (filename in LOADER.loadedFiles) {
