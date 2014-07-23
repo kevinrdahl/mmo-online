@@ -25,7 +25,7 @@ function begin() {
 	}
 	var xmlhttp = new XMLHttpRequest();
 	xmlhttp.onload = onGetFileInfo;
-	xmlhttp.open("GET", LOADER.filePrefix+"version/mmoo.txt", true);
+	xmlhttp.open("GET", LOADER.filePrefix+"version/mmoo.txt?t="+new Date().getTime(), true);
 	xmlhttp.send();
 	console.log("Retrieving file information.");
 }
@@ -78,7 +78,7 @@ function loadFiles() {
 		
 			//http request the script, and store it
 			var req = new XMLHttpRequest();
-			req.open("GET", LOADER.filePrefix+name, true);
+			req.open("GET", LOADER.filePrefix+name+'?t='+new Date.getTime(), true);
 			req.props = {name:name, type:type, version:version};
 			req.onload = onLoadFile;
 			if (type.substring(0,5) == "image") {
