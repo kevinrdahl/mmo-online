@@ -16,9 +16,6 @@ document.getElementsByTagName('body')[0].appendChild(LOADER.loadDiv);
 
 begin();
 
-var canvas = document.getElementById('gameview');
-var context = canvas.getContext('2d');
-
 function begin() {
 	if(typeof(Storage) !== "undefined") {
 		console.log('Web Storage supported!');
