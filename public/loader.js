@@ -35,7 +35,7 @@ function begin() {
 
 function onGetFileInfo () {
 	if (this.status == 200) {
-		fileInfo = JSON.parse(this.responseText);
+		LOADER.fileInfo = JSON.parse(this.responseText);
 		loadFiles();
 	} else {
 		alert("Unable to retrieve file information from the server.");
@@ -52,7 +52,7 @@ function loadFiles() {
 		LOADER.cachedVersions = {};
 	}
 
-	var files = fileInfo.info;
+	var files = LOADER.fileInfo.info;
 	for (var i = 0; i < files.length; i++) {
 		var name = files[i][0];
 		var type = files[i][1];
@@ -83,7 +83,7 @@ function loadFiles() {
 		
 			//http request the script, and store it
 			var req = new XMLHttpRequest();
-			req.open("GET", filePrefix+name, true);
+			req.open("GET", LOADER.filePrefix+name, true);
 			req.props = {name:name, type:type, version:version};
 			req.onload = onLoadFile;
 			if (type.substring(0,5) == "image") {
@@ -155,7 +155,7 @@ function onFileReady(name) {
 		//update local version numbers
 		localStorage.setItem("cached-files", JSON.stringify(LOADER.cachedVersions));
 		
-		var cssFiles = fileInfo.css;
+		var cssFiles = LOADER.fileInfo.css;
 		for (var i = 0; i < cssFiles.length; i++) {
 			var filename = cssFiles[i];
 			var head = document.getElementsByTagName('head')[0];
@@ -165,7 +165,7 @@ function onFileReady(name) {
 			head.appendChild(style);
 		}
 		
-		var htmlFiles = fileInfo.html;
+		var htmlFiles = LOADER.fileInfo.html;
 		var aVeryLongString = '';
 		for (var i = 0; i < htmlFiles.length; i++) {
 			var filename = htmlFiles[i];
@@ -173,7 +173,7 @@ function onFileReady(name) {
 		}
 		document.getElementsByTagName('body')[0].innerHTML += aVeryLongString;
 		
-		var images = fileInfo.images;
+		var images = LOADER.fileInfo.images;
 		for (var i = 0; i < images.length; i++) {
 			var imagename = images[i];
 			var image = new Image();
@@ -181,7 +181,7 @@ function onFileReady(name) {
 			LOADED.images[imagename] = image;
 		}
 		
-		var scripts = fileInfo.scripts;
+		var scripts = LOADER.fileInfo.scripts;
 		for (var i = 0; i < scripts.length; i++) {
 			eval(LOADER.loadedFiles[scripts[i]]);
 		}
