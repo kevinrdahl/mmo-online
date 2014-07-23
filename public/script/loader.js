@@ -78,7 +78,7 @@ function loadFiles() {
 		
 			//http request the script, and store it
 			var req = new XMLHttpRequest();
-			req.open("GET", LOADER.filePrefix+name+'?t='+new Date.getTime(), true);
+			req.open("GET", LOADER.filePrefix+name+'?t='+new Date().getTime(), true);
 			req.props = {name:name, type:type, version:version};
 			req.onload = onLoadFile;
 			if (type.substring(0,5) == "image") {
