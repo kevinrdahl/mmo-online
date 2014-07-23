@@ -685,7 +685,7 @@ function drawEntity (entity) {
 	var sprite = 'img/' + entity.sprite + '.jpg';
 	if (sprite in images) {
 		//image exists, draw that
-		context.drawImage(images[sprite], coords[0]-24, coords[1]-24);
+		context.drawImage(images[sprite], coords[0]-24, coords[1]-24, 48, 48);
 	} else {
 		//draw a rectangle
 		context.fillStyle = "rgba(100,100,100,1.0)";
