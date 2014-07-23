@@ -58,16 +58,16 @@ function loadFiles() {
 		var type = files[i][1];
 		var version = files[i][2];
 		var needLoad = true;
-		var loadSpan = document.createElement('span');
-		loadSpan.setAttribute('id', name);
-		loadSpan.innerHTML = name;
+		var loadItem = document.createElement('div');
+		loadItem.setAttribute('id', name);
+		loadItem.innerHTML = name + '<br>';
 
 		LOADER.loadedFiles[name] = null;
 
 		if (name in LOADER.cachedVersions) {
 			if (LOADER.cachedVersions[name] == version) {
 				//file already up to date
-				loadSpan.setAttribute('class', 'loaded');
+				loadItem.setAttribute('class', 'loaded');
 				needLoad = false
 				LOADER.loadedFiles[name] = localStorage.getItem(name);
 				console.log(name + ' is already up to date.');
@@ -79,7 +79,7 @@ function loadFiles() {
 		}
 
 		if (needLoad) {
-			loadSpan.setAttribute('class', 'loading');
+			loadItem.setAttribute('class', 'loading');
 		
 			//http request the script, and store it
 			var req = new XMLHttpRequest();
@@ -92,7 +92,7 @@ function loadFiles() {
 			req.send();
 		}
 		
-		LOADER.loadDiv.appendChild(loadSpan);
+		LOADER.loadDiv.appendChild(loadItem);
 	}
 	onFileReady();
 }
