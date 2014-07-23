@@ -28,7 +28,7 @@ function begin() {
 	}
 	var xmlhttp = new XMLHttpRequest();
 	xmlhttp.onload = onGetFileInfo;
-	xmlhttp.open("GET", filePrefix+"version/mmoo.txt", true);
+	xmlhttp.open("GET", LOADER.filePrefix+"version/mmoo.txt", true);
 	xmlhttp.send();
 	console.log("Retrieving file information.");
 }
