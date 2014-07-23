@@ -7,7 +7,7 @@ var LOADED = {
 var LOADER = {
 	filePrefix:"",
 	fileInfo:null,
-	loadDiv:document.createElement('div');
+	loadDiv:document.createElement('div'),
 	loadedFiles:{},
 	cachedVersions:localStorage.getItem("cached-files")
 };
