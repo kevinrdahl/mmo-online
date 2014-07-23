@@ -556,7 +556,7 @@ function gameLogic() {
 
 function drawFrame() {
 	var drawTime = new Date().getTime();
-	var tickProgress = ((nextTick-drawTime) / TICK_LEN);
+	var tickProgress = 1 - ((nextTick-drawTime) / TICK_LEN);
 	
 	if (tickProgress < 0) {
 		console.log('(' + nextTick + ' - ' + drawTime + ') / ' + TICK_LEN + ' = ' + tickProgress);
