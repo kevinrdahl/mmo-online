@@ -12,7 +12,7 @@ var LOADER = {
 	cachedVersions:localStorage.getItem("cached-files")
 };
 
-document.getElementsByTagName('body')[0].appendChild(loadDiv);
+document.getElementsByTagName('body')[0].appendChild(LOADER.loadDiv);
 
 begin();
 
