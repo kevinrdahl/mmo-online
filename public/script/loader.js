@@ -43,9 +43,7 @@ function onGetFileInfo () {
 }
 
 function loadFiles() {
-	//TODO: remove the false term
-	//updating versions for testing is a pain
-	if (LOADER.cachedVersions != null && false) {
+	if (LOADER.cachedVersions != null) {
 		LOADER.cachedVersions = JSON.parse(LOADER.cachedVersions);
 	} else {
 		console.log("No files cached");
