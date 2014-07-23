@@ -10,7 +10,7 @@ else:
 	
 fileList = {}
 
-f = open('mmoo.txt', 'r')
+f = open(root+'version/mmoo.txt', 'r')
 j = json.loads(f.read())
 f.close()
 

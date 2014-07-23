@@ -30,14 +30,14 @@ if len(changed) > 0:
 	f.write(json.dumps(hashes))
 	f.close()
 	
-	f = open('mmoo.txt', 'r')
+	f = open(root+'version/mmoo.txt', 'r')
 	j = json.loads(f.read())
 	f.close()
 	for item in j['info']:
 		if (item[0] in changed):
 			item[2] += 1
 	
-	f = open('mmoo.txt', 'w')
+	f = open(root+'version/mmoo.txt', 'w')
 	f.write(json.dumps(j))
 else:
 	print 'No changes'
