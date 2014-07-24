@@ -21,6 +21,7 @@ window.onresize = setCanvasSize;
 
 var nextTick;
 var TICK_LEN = 33;
+var CHECK_INTERVAL = 10;
 
 var messages = [];
 var gameStep = -2;
@@ -29,6 +30,10 @@ var advanceStep = 0;
 var waitSteps = 0;
 var pingOut = false;
 var deltas = [];
+
+var serverTime = [0,0]; //last confirmed [time,step]
+var targetDelay = 300;
+var gameState = 'connecting';
 
 var canvasInput = InputManager.createInputManager(canvas);
 
@@ -55,6 +60,7 @@ function openConnection() {
 	socket.on("connect", onConnect);
 	socket.on("disconnect", onDisconnect);
 	socket.on("message", onMessage);
+	getServerTime();
 }
 
 function startGame() {
@@ -78,6 +84,8 @@ function startGame() {
 	canvasInput.rightClickUp = canvasRightUp;
 	canvasInput.keyDown = keyDown;
 	canvasInput.keyUp = keyUp;
+	
+	setInterval(getServerTime, 30000); //get server time every 30 seconds
 }
 
 function sendChat(e) {
@@ -115,51 +123,42 @@ function onDisconnect () {
 }
 
 function pingSend() {
-	socket.send(JSON.stringify(['ping']));
+	socket.send('["ping"]');
+}
+
+function getServerTime() {
+	socket.send('["time"]');
+}
+
+function estServerTime(ticknum) {
+	//serverTime[0] will always be less than or equal to ticknum
+	return serverTime[0] + TICK_LEN*(ticknum-serverTime[1]);
+}
+
+function estTickTime(ticknum) {
+	var currentTime = new Date().getTime();
+	if (tickNum == gameStep) {
+		return currentTime;
+	} else if (ticknum > gameStep) {
+		return nextStep + TICK_LEN*(ticknum-gameStep-1);
+	} else {
+		return currentTime + TICK_LEN*(ticknum-gamestep);
+	}
 }
 
 function onMessage (data) {
 	console.log(data);
 	var msg = JSON.parse(data);
 	
-	if (gameStep < 0) {
-		gameStep = msg[0]-10;
-		lastMessage = gameStep;
-		startGame();
-		return;
-	}
-	var delta = msg[0] - gameStep;
-	if (deltas.length >= 10) {
-		deltas.shift();
-	}
-	deltas.push(Math.abs(delta));
-	
-	if (delta < 0) {
-		//message arrived late, need to set gameStep back
-		var avg = 0;
-		for (var i = 0; i < deltas.length; i++) {
-			avg += deltas[i];
+	if (msg[1] == 'time') {
+		serverTime = [msg[2], msg[0]];
+		if (gameState == 'connecting') {
+			gameStep = math.round(msg[0]-10);
+			lastMessage = gameStep;
+			startGame();
+			return
 		}
-		avg /= deltas.length;
-		advanceStep = 0;
-		var back = Math.floor(avg*2) + 1;
-		var histLen = gameStep - lastMessage;
-		var wait = back-histLen;
-		
-		if (back <= histLen) {
-			rollBack(back);
-		} else {
-			rollBack(histLen);
-			waitSteps = wait;
-			console.log('WAIT ' + waitSteps);
-		}
-	} else if (delta == 0) {
-		advanceStep = 0;
-	} else {
-		advanceStep += delta/50;
-	}
-	
-	if (msg[1] == 'ping') {
+	} else if (msg[1] == 'ping') {
 		lastMessage = msg[0];
 		pingOut = false;
 	} else if (msg[1] == 'chat') {
@@ -167,6 +166,33 @@ function onMessage (data) {
 	} else {
 		messages.push(msg);
 	}
+	
+	var estSendTime = estServerTime(msg[0]);
+	var estReadTime = estTickTime(msg[0]);
+	
+	var delta = targetDelay - (estSendTime - estReadTime);
+	if (delta > 0) {
+		targetDelay -= Math.round(delta/10);
+	} else {
+		targetDelay -= Math.round(delta/3); //looks strange that both are subtraction, but here delta is negative
+	}
+	
+	if (msg[0] < gameStep) {
+		//PANIC
+		var tickDiff = gameStep - msg[0];
+		var histlen = gameStep - lastMessage;
+		if (tickDiff > histlen) {
+			rollBack(histlen);
+		} else {
+			rollBack(tickDiff);
+		}
+	} else {
+		if (delta > TICK_LEN/2) {
+			nextTick -= Math.round(TICK_LEN/2);
+		} else {
+			nextTick -= delta; //this should handle waiting (?)
+		}
+	}	
 }
 
 function readMessage(msg) {
@@ -351,19 +377,10 @@ function setEntityCoords(id, coords) {
 }
 
 function onTick() {
-	if (gameStep == -2) {
-		//loading screen
-		context.clearRect(0,0,canvasWidth, canvasHeight);
-		context.fillStyle = "rgba(50,50,50,1.0)";
-		context.fillRect(canvasWidth/4, canvasHeight/2-15, canvasWidth/2, 30);
-		var w = canvasHeight/2-6;
-		var w2 = Math.ceil(w * (numLoaded/imageList.length));
-		context.fillStyle = rgbaString(COLOUR_SELF[HP],1.0);
-		context.fillRect(canvasWidth/4+3, canvasHeight/2-12, w2, 24);
-		setTick();
-		return;
-	} else if (gameStep == -1) {
-		//menu
+	var currentTime = new Date().getTime();
+	
+	if (gameStep < 0) {
+		//wait for startGame()
 		setTick();
 		return;
 	}
@@ -373,16 +390,16 @@ function onTick() {
 		pingOut = true;
 	}
 	
-	if (waitSteps > 0) {
-		waitSteps--;
-	} else {
+	while (nextTick <= currentTime) {
 		gameLogic();
-		if (advanceStep >= 1) {
-			advanceStep--;
-			console.log("ADVANCE");
-			gameLogic();
-		}
+		nextTick += TICK_LEN;
 	}
+	
+	//setTick();
+}
+
+function gameLogic() {
+	gameStep++;
 	
 	if (InputManager.isPressed('UP')) {
 		camera[1] -= CAMERA_SPEED;
@@ -396,13 +413,6 @@ function onTick() {
 	if (InputManager.isPressed('RIGHT')) {
 		camera[0] += CAMERA_SPEED;
 	}
-	
-	nextTick += TICK_LEN;
-	setTick();
-}
-
-function gameLogic() {
-	gameStep++;
 
 	for (id in entities) {
 		entities[id].coords = entities[id].nextcoords;
@@ -557,13 +567,13 @@ function drawFrame() {
 	window.requestAnimationFrame(drawFrame);
 }
 
-function setTick() {
+/*function setTick() {
 	var wait = nextTick - new Date().getTime();
 	if (wait < 0) {
 		wait = 0;
 	}
 	setTimeout(onTick,wait);
-}
+}*/
 
 function rollBack(steps) {
 	console.log('ROLL BACK ' + steps);
@@ -661,7 +671,7 @@ function getScrollbarWidth() {
 
 gameStep = -1;
 nextTick = new Date().getTime()+TICK_LEN;
-onTick();
+setInterval(onTick, CHECK_INTERVAL);//onTick();
 var lastDraw = nextTick;
 window.requestAnimationFrame(drawFrame);
 
