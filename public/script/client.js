@@ -378,6 +378,7 @@ function setEntityCoords(id, coords) {
 }
 
 function onTick() {
+	console.log('tick');
 	var currentTime = new Date().getTime();
 	
 	if (gameStep < 0) {
@@ -600,7 +601,7 @@ function drawEntity (entity) {
 		context.fillStyle = "rgba(100,100,100,1.0)";
 		context.fillRect(Math.round(coords[0])-24, Math.round(coords[1])-24, 48, 48);
 	}
-};
+}
 
 function rgbaString (rgb, a) {
 	return "rgba(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + "," + a + ")";
@@ -672,7 +673,8 @@ function getScrollbarWidth() {
 
 gameStep = -1;
 nextTick = new Date().getTime()+TICK_LEN;
-setInterval(onTick, CHECK_INTERVAL);//onTick();
+setInterval(onTick, 5);//onTick();
+onTick();
 var lastDraw = nextTick;
 window.requestAnimationFrame(drawFrame);
 
