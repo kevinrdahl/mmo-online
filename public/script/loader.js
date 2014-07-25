@@ -182,7 +182,12 @@ function onFileReady(name) {
 		console.log(jsFiles);
 		console.log(jsFiles.length);
 		for (var i = 0; i < jsFiles.length; i++) {
-			console.log('eval(' + jsFiles[i] + ')');
+			console.log(i);
+			try {
+				console.log('eval(' + jsFiles[i] + ')');
+			} catch (e) {
+				console.log(e.message);
+			}
 			try {
 				eval(LOADER.loadedFiles[jsFiles[i]]);
 			} catch (err) {
