@@ -178,16 +178,9 @@ function onFileReady(name) {
 			LOADED.images[imagename] = image;
 		}
 		
-		var jsFiles = LOADER.fileInfo.scripts;
-		console.log(jsFiles);
-		for (var i = 0; i < jsFiles.length; i++) {
-			console.log(i + ' eval(' + jsFiles[i] + ')');
-			try {
-				eval(LOADER.loadedFiles[jsFiles[i]]);
-			} catch (err) {
-				console.log(err.message);
-			}
+		var scripts = LOADER.fileInfo.scripts;
+		for (var i = 0; i < scripts.length; i++) {
+			eval(LOADER.loadedFiles[scripts[i]]);
 		}
-		eval(LOADER.loadedFiles['script/client.js']);
 	}
 }

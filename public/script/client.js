@@ -1,7 +1,6 @@
-console.log ('=== MMO ONLINE ===');
-
 var socketURL = 'http://kevinstuff.net';
 var socketPort = 8999;
+var imgPrefix = 'http://kevinstuff.net/img/';
 
 var socket;
 var canvas = document.getElementById("gameview");
@@ -22,7 +21,6 @@ window.onresize = setCanvasSize;
 
 var nextTick;
 var TICK_LEN = 33;
-var CHECK_INTERVAL = 10;
 
 var messages = [];
 var gameStep = -2;
@@ -32,11 +30,31 @@ var waitSteps = 0;
 var pingOut = false;
 var deltas = [];
 
-var serverTime = [0,0]; //last confirmed [time,step]
-var targetDelay = 300;
-var gameState = 'connecting';
+var keys = new Object();
+var alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+for (var i = 0; i < 26; i++) {
+	keys[alphabet.charAt(i)] = i+65;
+}
+keys['SHIFT'] = 16;
+keys['CRTL'] = 17;
+keys['ALT'] = 18;
+keys['LEFT'] = 37;
+keys['UP'] = 38;
+keys['RIGHT'] = 39;
+keys['DOWN'] = 40;
 
-var canvasInput = InputManager.createInputManager(canvas);
+var pressed = [];
+for (key in keys) {
+	pressed[keys[key]] = false;
+}
+
+var images = LOADED.images;
+
+var MOUSE_DRAG_MIN = 5;
+var mouseCoords;
+var mouseDownCoords;
+var mouseIsDown = false;
+var mouseDragging = false;
 
 var camera = [0,0];
 var CAMERA_SPEED = 20;
@@ -55,14 +73,35 @@ var COLOUR_FRIENDLY = [[0,0,255], [0,0,180], [200,200,255]];
 var COLOUR_NEUTRAL = [[255,255,0], [180,180,0], [255,255,200]];
 var COLOUR_HOSTILE = [[255,0,0], [180,0,0], [255,200,200]];
 
+/*function imageLoaded () {
+	var str = this.src.substring(imgPrefix.length);
+	images[str][0] = true;
+	chatLog(str);
+	numLoaded++;
+	if (numLoaded == imageList.length) {
+		gameStep = -1;
+		openConnection();
+	}
+}*/
+
+function loadImages() {
+	console.log('loading images');
+	imgs = {'img/man.jpg':'http://kevinstuff.net/img/man.jpg', 'img/bear.jpg':'http://kevinstuff.net/img/bear.jpg'};
+	for (imgname in imgs) {
+		var image = new Image();
+		image.imgname = imgname;
+		image.onload = function() {
+			images[this.imgname] = this;
+		}
+		image.src = imgs[imgname];
+	}
+}
 
 function openConnection() {
 	socket = io.connect(socketURL, {port: socketPort, transports: ["websocket"]});
 	socket.on("connect", onConnect);
 	socket.on("disconnect", onDisconnect);
 	socket.on("message", onMessage);
-	getServerTime();
-	console.log('connecting!');
 }
 
 function startGame() {
@@ -81,13 +120,11 @@ function startGame() {
 		colour:'rgba(255,255,0,1.0)'
 	});
 	
-	canvasInput.leftClickUp = canvasLeftUp;
-	canvasInput.leftClickMove = canvasLeftMove;
-	canvasInput.rightClickUp = canvasRightUp;
-	canvasInput.keyDown = keyDown;
-	canvasInput.keyUp = keyUp;
-	
-	setInterval(getServerTime, 30000); //get server time every 30 seconds
+	canvas.addEventListener('mousedown', onMouseDown, false);
+	canvas.addEventListener('mouseup', onMouseUp, false);
+	canvas.addEventListener('mousemove', onMouseMove, false);
+	canvas.addEventListener('keydown', onKeyDown, false);
+	canvas.addEventListener('keyup', onKeyUp, false);
 }
 
 function sendChat(e) {
@@ -125,44 +162,51 @@ function onDisconnect () {
 }
 
 function pingSend() {
-	socket.send('["ping"]');
-}
-
-function getServerTime() {
-	socket.send('["time"]');
-}
-
-function estServerTime(ticknum) {
-	//serverTime[0] will always be less than or equal to ticknum
-	return serverTime[0] + TICK_LEN*(ticknum-serverTime[1]);
-}
-
-function estTickTime(ticknum) {
-	var currentTime = new Date().getTime();
-	if (ticknum == gameStep) {
-		return currentTime;
-	} else if (ticknum > gameStep) {
-		return nextTick + TICK_LEN*(ticknum-gameStep-1);
-	} else {
-		return currentTime + TICK_LEN*(ticknum-gameStep);
-	}
+	socket.send(JSON.stringify(['ping']));
 }
 
 function onMessage (data) {
 	console.log(data);
 	var msg = JSON.parse(data);
 	
-	if (msg[1] == 'time') {
-		console.log('Server time is ' + msg[2]);
-		console.log('Current time is ' + new Date().getTime());
-		serverTime = [msg[2], msg[0]];
-		if (gameState == 'connecting') {
-			gameStep = Math.round(msg[0]-10);
-			lastMessage = gameStep;
-			startGame();
-			return;
+	if (gameStep < 0) {
+		gameStep = msg[0]-10;
+		lastMessage = gameStep;
+		startGame();
+		return;
+	}
+	var delta = msg[0] - gameStep;
+	if (deltas.length >= 10) {
+		deltas.shift();
+	}
+	deltas.push(Math.abs(delta));
+	
+	if (delta < 0) {
+		//message arrived late, need to set gameStep back
+		var avg = 0;
+		for (var i = 0; i < deltas.length; i++) {
+			avg += deltas[i];
 		}
-	} else if (msg[1] == 'ping') {
+		avg /= deltas.length;
+		advanceStep = 0;
+		var back = Math.floor(avg*2) + 1;
+		var histLen = gameStep - lastMessage;
+		var wait = back-histLen;
+		
+		if (back <= histLen) {
+			rollBack(back);
+		} else {
+			rollBack(histLen);
+			waitSteps = wait;
+			console.log('WAIT ' + waitSteps);
+		}
+	} else if (delta == 0) {
+		advanceStep = 0;
+	} else {
+		advanceStep += delta/50;
+	}
+	
+	if (msg[1] == 'ping') {
 		lastMessage = msg[0];
 		pingOut = false;
 	} else if (msg[1] == 'chat') {
@@ -170,50 +214,6 @@ function onMessage (data) {
 	} else {
 		messages.push(msg);
 	}
-	
-	if (gameStep < 0) {
-		return;
-	}
-	
-	lastMessage = gameStep;
-	
-	var estSendTime = estServerTime(msg[0]);
-	var estReadTime = estTickTime(msg[0]);
-	var currentTime = new Date().getTime();
-	
-	var delta = estSendTime - currentTime;
-	
-	/*console.log('Step: ' + gameStep);
-	console.log('Est. Server Time: ' + estSendTime);
-	console.log('Received at ' + currentTime);
-	console.log('Would read at ' + estReadTime);
-	console.log('Delta: ' + delta);
-	console.log('Target Delay: ' + targetDelay);*/
-	
-	if (delta > 0) {
-		targetDelay -= Math.round(delta/10);
-	} else {
-		targetDelay -= Math.round(delta/3); //looks strange that both are subtraction, but here delta is negative
-	}
-	
-	if (msg[0] < gameStep) {
-		//PANIC
-		var tickDiff = gameStep - msg[0];
-		var histlen = gameStep - lastMessage;
-		if (tickDiff > histlen) {
-			rollBack(histlen);
-		} else {
-			rollBack(tickDiff);
-		}
-	} else {
-		if (delta/10 > TICK_LEN/2) {
-			nextTick -= Math.round(TICK_LEN/2);
-		} else {
-			nextTick -= delta/10; //this should handle waiting (?)
-		}
-	}
-	
-	//console.log("nextTick: " + nextTick);
 }
 
 function readMessage(msg) {
@@ -265,25 +265,80 @@ function readMessage(msg) {
 	}
 }
 
-
-function keyDown (keyname) {
-	//nothing yet
+function onMouseDown(e) {
+	fixWhich(e);
+	
+	var canvasX = canvas.offsetLeft;
+	var canvasY = canvas.offsetTop;
+	
+	var x = e.clientX - canvasX;
+	var y = e.clientY - canvasY;
+	
+	if (e.which == 1) {
+		//left mouse
+		mouseDownCoords = [x,y];
+		mouseIsDown = true;
+	}
 }
 
-function keyUp (keyname) {
-	//nothing yet
+function onMouseUp(e) {
+	fixWhich(e);
+	
+	if (e.which == 1) {
+		//left mouse up
+		if (mouseDragging) {
+			leftClickDrag();
+		} else {
+			leftClick();
+		}
+		mouseIsDown = false;
+		mouseDragging = false;
+	} else if (e.which == 3) {
+		rightClick();
+	}
 }
 
-function canvasLeftUp(mouseCoords) {
+function onMouseMove (e) {
+	fixWhich(e);
+	var canvasX = canvas.offsetLeft;
+	var canvasY = canvas.offsetTop;
+	mouseCoords = [e.clientX-canvasX, e.clientY-canvasY];
+	
+	if (mouseIsDown) {
+		if (Math.abs(mouseCoords[0]-mouseDownCoords[0]) > MOUSE_DRAG_MIN || Math.abs(mouseCoords[1]-mouseDownCoords[1]) > MOUSE_DRAG_MIN) {
+			mouseDragging = true;
+		}
+	}
+}
+
+function onKeyDown (e) {
+	pressed[e.keyCode] = true;
+}
+
+function onKeyUp (e) {
+	pressed[e.keyCode] = false;
+}
+
+function fixWhich(e) {
+  if (!e.which && e.button) {
+    if (e.button & 1) e.which = 1      // Left
+    else if (e.button & 4) e.which = 2 // Middle
+    else if (e.button & 2) e.which = 3 // Right
+  }
+}
+
+
+function leftClick() {
+	var up = mouseCoords;
 	for (var i = 0; i < buttons.length; i++) {
-		if (inRect(mouseCoords, buttons[i].coords, 48, 48)) {
+		if (inRect(up, buttons[i].coords, 48, 48)) {
 			socket.send(JSON.stringify(['but',buttons[i].action]));
 			return;
 		}
 	}
 	
-	var worldCoords = viewToWorld(mouseCoords);
-	var s = InputManager.isPressed('SHIFT');
+	up = viewToWorld(mouseCoords);
+	var s = pressed[keys['SHIFT']];
 	
 	if (!s) {
 		for (id in entities) {
@@ -297,7 +352,7 @@ function canvasLeftUp(mouseCoords) {
 	var entity;
 	for (id in entities) {
 		entity = entities[id];
-		if (inRect(worldCoords, entity.coords, 48, 48)) {
+		if (inRect(up, entity.coords, 48, 48)) {
 			if (entity.control != 0 && ownSelected != 0) {
 				continue;
 			}
@@ -312,15 +367,15 @@ function canvasLeftUp(mouseCoords) {
 	}
 }
 
-function canvasLeftMove(mouseCoords) {
+function leftClickDrag() {
 	//rearrange such that up is top left, down is bottom right
-	var down = viewToWorld(canvasInput.leftMouseDownCoords);
-	var up = viewToWorld(mouseCoords);
+	var down = viewToWorld([mouseDownCoords[0], mouseDownCoords[1]]);
+	var up = viewToWorld([mouseCoords[0], mouseCoords[1]]);
 	fixRectCorners(down, up);
 	
 	for (id in entities) {
 		var entity = entities[id];
-		if (!InputManager.isPressed('SHIFT')) {
+		if (!pressed[keys['SHIFT']]) {
 			entity.selected = false;
 			if (entities[id].control == 0) {
 				ownSelected--;
@@ -338,9 +393,9 @@ function canvasLeftMove(mouseCoords) {
 	}
 }
 
-function canvasRightUp(mouseCoords) {
+function rightClick() {
 	var up = viewToWorld(mouseCoords);
-	var dest = '';
+	var dest = ''
 	var order = 'move';
 	
 	for (id in entities) {
@@ -361,7 +416,7 @@ function canvasRightUp(mouseCoords) {
 	for (id in entities) {
 		var entity = entities[id];
 		if (entity.selected && entity.control == 0) {
-			var msg = JSON.stringify([order, id, dest, InputManager.isPressed('SHIFT')]);
+			var msg = JSON.stringify([order, id, dest, pressed[keys['SHIFT']]]);
 			socket.send(msg);
 		}
 	}
@@ -398,12 +453,20 @@ function setEntityCoords(id, coords) {
 }
 
 function onTick() {
-	var currentTime = new Date().getTime();
-	
-	if (gameStep < 0) {
-		//wait for startGame()
-		//setTick();
-		setTimeout(onTick, 10);
+	if (gameStep == -2) {
+		//loading screen
+		context.clearRect(0,0,canvasWidth, canvasHeight);
+		context.fillStyle = "rgba(50,50,50,1.0)";
+		context.fillRect(canvasWidth/4, canvasHeight/2-15, canvasWidth/2, 30);
+		var w = canvasHeight/2-6;
+		var w2 = Math.ceil(w * (numLoaded/imageList.length));
+		context.fillStyle = rgbaString(COLOUR_SELF[HP],1.0);
+		context.fillRect(canvasWidth/4+3, canvasHeight/2-12, w2, 24);
+		setTick();
+		return;
+	} else if (gameStep == -1) {
+		//menu
+		setTick();
 		return;
 	}
 
@@ -412,29 +475,36 @@ function onTick() {
 		pingOut = true;
 	}
 	
-	while (nextTick <= currentTime) {
+	if (waitSteps > 0) {
+		waitSteps--;
+	} else {
 		gameLogic();
-		nextTick += TICK_LEN;
+		if (advanceStep >= 1) {
+			advanceStep--;
+			console.log("ADVANCE");
+			gameLogic();
+		}
 	}
 	
-	setTimeout(onTick, 10);
+	if (pressed[keys['UP']]) {
+		camera[1] -= CAMERA_SPEED;
+	}
+	if (pressed[keys['DOWN']]) {
+		camera[1] += CAMERA_SPEED;
+	}
+	if (pressed[keys['LEFT']]) {
+		camera[0] -= CAMERA_SPEED;
+	}
+	if (pressed[keys['RIGHT']]) {
+		camera[0] += CAMERA_SPEED;
+	}
+	
+	nextTick += TICK_LEN;
+	setTick();
 }
 
 function gameLogic() {
 	gameStep++;
-	
-	if (InputManager.isPressed('UP')) {
-		camera[1] -= CAMERA_SPEED;
-	}
-	if (InputManager.isPressed('DOWN')) {
-		camera[1] += CAMERA_SPEED;
-	}
-	if (InputManager.isPressed('LEFT')) {
-		camera[0] -= CAMERA_SPEED;
-	}
-	if (InputManager.isPressed('RIGHT')) {
-		camera[0] += CAMERA_SPEED;
-	}
 
 	for (id in entities) {
 		entities[id].coords = entities[id].nextcoords;
@@ -489,10 +559,10 @@ function drawFrame() {
 	var tickProgress = 1 - ((nextTick-drawTime) / TICK_LEN);
 	
 	if (tickProgress < 0) {
-		//console.log('(' + nextTick + ' - ' + drawTime + ') / ' + TICK_LEN + ' = ' + tickProgress);
+		console.log('(' + nextTick + ' - ' + drawTime + ') / ' + TICK_LEN + ' = ' + tickProgress);
 		tickProgress = 0;
 	} else if (tickProgress > 1) {
-		//console.log('(' + nextTick + ' - ' + drawTime + ') / ' + TICK_LEN + ' = ' + tickProgress);
+		console.log('(' + nextTick + ' - ' + drawTime + ') / ' + TICK_LEN + ' = ' + tickProgress);
 		tickProgress = 1;
 	}
 
@@ -563,12 +633,12 @@ function drawFrame() {
 	}
 	
 	//selection rectangle
-	if (canvasInput.leftMouseDragging) {
+	if (mouseDragging) {
 		context.strokeStyle = "rgba(0,255,0,1.0)";
-		var down = canvasInput.leftMouseDownCoords;
-		var drag = canvasInput.mouseCoords;
-		fixRectCorners(down,drag);
-		context.strokeRect(down[0], down[1], drag[0]-down[0], drag[1]-down[1]);
+		var down = [mouseDownCoords[0], mouseDownCoords[1]];
+		var up = [mouseCoords[0], mouseCoords[1]];
+		fixRectCorners(down,up);
+		context.strokeRect(down[0], down[1], up[0]-down[0], up[1]-down[1]);
 	}
 	
 	//buttons
@@ -589,13 +659,13 @@ function drawFrame() {
 	window.requestAnimationFrame(drawFrame);
 }
 
-/*function setTick() {
+function setTick() {
 	var wait = nextTick - new Date().getTime();
 	if (wait < 0) {
 		wait = 0;
 	}
 	setTimeout(onTick,wait);
-}*/
+}
 
 function rollBack(steps) {
 	console.log('ROLL BACK ' + steps);
@@ -621,7 +691,7 @@ function drawEntity (entity) {
 		context.fillStyle = "rgba(100,100,100,1.0)";
 		context.fillRect(Math.round(coords[0])-24, Math.round(coords[1])-24, 48, 48);
 	}
-}
+};
 
 function rgbaString (rgb, a) {
 	return "rgba(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + "," + a + ")";
@@ -693,7 +763,6 @@ function getScrollbarWidth() {
 
 gameStep = -1;
 nextTick = new Date().getTime()+TICK_LEN;
-//setInterval(onTick, 5);//onTick();
 onTick();
 var lastDraw = nextTick;
 window.requestAnimationFrame(drawFrame);
