@@ -134,7 +134,6 @@ function getServerTime() {
 
 function estServerTime(ticknum) {
 	//serverTime[0] will always be less than or equal to ticknum
-	console.log(serverTime);
 	return serverTime[0] + TICK_LEN*(ticknum-serverTime[1]);
 }
 
@@ -205,12 +204,14 @@ function onMessage (data) {
 			rollBack(tickDiff);
 		}
 	} else {
-		if (delta > TICK_LEN/2) {
-			//nextTick -= Math.round(TICK_LEN/2);
+		if (delta/10 > TICK_LEN/2) {
+			nextTick -= Math.round(TICK_LEN/2);
 		} else {
-			//nextTick -= delta; //this should handle waiting (?)
+			nextTick -= delta/10; //this should handle waiting (?)
 		}
-	}	
+	}
+	
+	console.log("nextTick: " + nextTick);
 }
 
 function readMessage(msg) {
