@@ -148,7 +148,8 @@ function onFileReady(name) {
 
 	if (done) {
 		console.log("All files loaded!");
-		document.getElementsByTagName('body')[0].removeChild(LOADER.loadDiv);
+		var docBody = document.getElementsByTagName('body')[0]
+		docBody.removeChild(LOADER.loadDiv);
 		//update local version numbers
 		localStorage.setItem("cached-files", JSON.stringify(LOADER.cachedVersions));
 		
@@ -168,7 +169,7 @@ function onFileReady(name) {
 			var filename = htmlFiles[i];
 			aVeryLongString += LOADER.loadedFiles[filename];
 		}
-		document.getElementsByTagName('body')[0].innerHTML += aVeryLongString;
+		docBody.innerHTML += aVeryLongString;
 		
 		var images = LOADER.fileInfo.images;
 		for (var i = 0; i < images.length; i++) {
@@ -180,8 +181,11 @@ function onFileReady(name) {
 		
 		var scripts = LOADER.fileInfo.scripts;
 		for (var i = 0; i < scripts.length; i++) {
-			eval(LOADER.loadedFiles[scripts[i]]);
+			var element = document.createElement('script');
+			element.appendChild(document.createTextNode(LOADER.loadedFiles[scripts[i]]));
+			docBody.appendChild(element);
+			//eval(LOADER.loadedFiles[scripts[i]]);
 		}
-		eval(LOADER.loadedFiles['script/client.js']);
+		//eval(LOADER.loadedFiles['script/client.js']);
 	}
 }
