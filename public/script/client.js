@@ -173,7 +173,7 @@ function onMessage (data) {
 	var estReadTime = estTickTime(msg[0]);
 	var currentTime = new Date().getTime();
 	
-	var delta = targetDelay - (estSendTime - currentTime);
+	var delta = estSendTime - currentTime;
 	
 	console.log('Step: ' + gameStep);
 	console.log('Est. Server Time: ' + estSendTime);
