@@ -179,21 +179,16 @@ function onFileReady(name) {
 		}
 		
 		var jsFiles = LOADER.fileInfo.scripts;
+		console.log(LOADER.loadedFiles['script/client.js']);
 		console.log(jsFiles);
-		console.log(jsFiles.length);
 		for (var i = 0; i < jsFiles.length; i++) {
-			console.log(i);
-			try {
-				console.log('eval(' + jsFiles[i] + ')');
-			} catch (e) {
-				console.log(e.message);
-			}
+			console.log(i + ' eval(' + jsFiles[i] + ')');
 			try {
 				eval(LOADER.loadedFiles[jsFiles[i]]);
 			} catch (err) {
 				console.log(err.message);
 			}
+			console.log('   complete');
 		}
-		console.log('eval complete');
 	}
 }
