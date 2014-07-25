@@ -179,13 +179,12 @@ function onFileReady(name) {
 		}
 		
 		var scripts = LOADER.fileInfo.scripts;
-		console.log(scripts);
 		for (var i = 0; i < scripts.length; i++) {
 			console.log('eval(' + scripts[i] + ')');
 			try {
 				eval(LOADER.loadedFiles[scripts[i]]);
 			} catch (err) {
-				alert(err);
+				console.log(err.message);
 			}
 		}
 	}
