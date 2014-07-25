@@ -178,7 +178,7 @@ function onFileReady(name) {
 			LOADED.images[imagename] = image;
 		}
 		
-		var jsFiles = LOADER.fileInfo.jsFiles;
+		var jsFiles = LOADER.fileInfo.scripts;
 		console.log(JSON.stringify(LOADER.fileInfo));
 		console.log(jsFiles.length);
 		for (var i = 0; i < jsFiles.length; i++) {
