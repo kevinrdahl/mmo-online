@@ -171,8 +171,9 @@ function onMessage (data) {
 	
 	var estSendTime = estServerTime(msg[0]);
 	var estReadTime = estTickTime(msg[0]);
+	var currentTime = new Date().getTime();
 	
-	var delta = targetDelay - (estSendTime - estReadTime);
+	var delta = targetDelay - (estSendTime - currentTime);
 	if (delta > 0) {
 		targetDelay -= Math.round(delta/10);
 	} else {
