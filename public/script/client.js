@@ -180,6 +180,8 @@ function onMessage (data) {
 		targetDelay -= Math.round(delta/3); //looks strange that both are subtraction, but here delta is negative
 	}
 	
+	console.log(delta + '   ' + targetDelay);
+	
 	if (msg[0] < gameStep) {
 		//PANIC
 		var tickDiff = gameStep - msg[0];
@@ -191,9 +193,9 @@ function onMessage (data) {
 		}
 	} else {
 		if (delta > TICK_LEN/2) {
-			nextTick -= Math.round(TICK_LEN/2);
+			//nextTick -= Math.round(TICK_LEN/2);
 		} else {
-			nextTick -= delta; //this should handle waiting (?)
+			//nextTick -= delta; //this should handle waiting (?)
 		}
 	}	
 }
@@ -380,7 +382,6 @@ function setEntityCoords(id, coords) {
 }
 
 function onTick() {
-	console.log('tick');
 	var currentTime = new Date().getTime();
 	
 	if (gameStep < 0) {
