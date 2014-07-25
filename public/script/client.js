@@ -34,32 +34,6 @@ var waitSteps = 0;
 var pingOut = false;
 var deltas = [];
 
-var keys = new Object();
-var alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-for (var i = 0; i < 26; i++) {
-	keys[alphabet.charAt(i)] = i+65;
-}
-keys['SHIFT'] = 16;
-keys['CRTL'] = 17;
-keys['ALT'] = 18;
-keys['LEFT'] = 37;
-keys['UP'] = 38;
-keys['RIGHT'] = 39;
-keys['DOWN'] = 40;
-
-var pressed = [];
-for (key in keys) {
-	pressed[keys[key]] = false;
-}
-
-var images = LOADED.images;
-
-var MOUSE_DRAG_MIN = 5;
-var mouseCoords;
-var mouseDownCoords;
-var mouseIsDown = false;
-var mouseDragging = false;
-
 var camera = [0,0];
 var CAMERA_SPEED = 20;
 
@@ -319,7 +293,6 @@ function canvasLeftMove(mouseCoords) {
 }
 
 function canvasRightUp(mouseCoords) {
-	console.log("right mouse up");
 	var up = viewToWorld(mouseCoords);
 	var dest = ''
 	var order = 'move';
