@@ -17,6 +17,8 @@ var canvasWidth;
 var canvasHeight;
 setCanvasSize();
 
+var canvasInput = InputManager.createInputManager(canvas);
+
 document.oncontextmenu = function () {return false;};
 document.onclick = function(e) {e.preventDefault(); e.defaultPrevented = true; e.stopPropagation(); return false;};
 window.onresize = setCanvasSize;
@@ -75,30 +77,6 @@ var COLOUR_FRIENDLY = [[0,0,255], [0,0,180], [200,200,255]];
 var COLOUR_NEUTRAL = [[255,255,0], [180,180,0], [255,255,200]];
 var COLOUR_HOSTILE = [[255,0,0], [180,0,0], [255,200,200]];
 
-/*function imageLoaded () {
-	var str = this.src.substring(imgPrefix.length);
-	images[str][0] = true;
-	chatLog(str);
-	numLoaded++;
-	if (numLoaded == imageList.length) {
-		gameStep = -1;
-		openConnection();
-	}
-}*/
-
-function loadImages() {
-	console.log('loading images');
-	imgs = {'img/man.jpg':'http://kevinstuff.net/img/man.jpg', 'img/bear.jpg':'http://kevinstuff.net/img/bear.jpg'};
-	for (imgname in imgs) {
-		var image = new Image();
-		image.imgname = imgname;
-		image.onload = function() {
-			images[this.imgname] = this;
-		}
-		image.src = imgs[imgname];
-	}
-}
-
 function openConnection() {
 	socket = io.connect(socketURL, {port: socketPort, transports: ["websocket"]});
 	socket.on("connect", onConnect);
@@ -122,11 +100,11 @@ function startGame() {
 		colour:'rgba(255,255,0,1.0)'
 	});
 	
-	canvas.addEventListener('mousedown', onMouseDown, false);
-	canvas.addEventListener('mouseup', onMouseUp, false);
-	canvas.addEventListener('mousemove', onMouseMove, false);
-	canvas.addEventListener('keydown', onKeyDown, false);
-	canvas.addEventListener('keyup', onKeyUp, false);
+	canvasInput.leftClickUp = canvasLeftUp;
+	canvasInput.leftClickMove = canvasLeftDown;
+	canvasInput.rightClickUp = canvasRightUp;
+	canvasInput.keyDown = keyDown;
+	canvasInput.keyDown = keyUp;
 }
 
 function sendChat(e) {
@@ -267,70 +245,15 @@ function readMessage(msg) {
 	}
 }
 
-function onMouseDown(e) {
-	fixWhich(e);
-	
-	var canvasX = canvas.offsetLeft;
-	var canvasY = canvas.offsetTop;
-	
-	var x = e.clientX - canvasX;
-	var y = e.clientY - canvasY;
-	
-	if (e.which == 1) {
-		//left mouse
-		mouseDownCoords = [x,y];
-		mouseIsDown = true;
-	}
+function onKeyDown (keyname) {
+	//nothing yet
 }
 
-function onMouseUp(e) {
-	fixWhich(e);
-	
-	if (e.which == 1) {
-		//left mouse up
-		if (mouseDragging) {
-			leftClickDrag();
-		} else {
-			leftClick();
-		}
-		mouseIsDown = false;
-		mouseDragging = false;
-	} else if (e.which == 3) {
-		rightClick();
-	}
+function onKeyUp (keyname) {
+	//nothing yet
 }
 
-function onMouseMove (e) {
-	fixWhich(e);
-	var canvasX = canvas.offsetLeft;
-	var canvasY = canvas.offsetTop;
-	mouseCoords = [e.clientX-canvasX, e.clientY-canvasY];
-	
-	if (mouseIsDown) {
-		if (Math.abs(mouseCoords[0]-mouseDownCoords[0]) > MOUSE_DRAG_MIN || Math.abs(mouseCoords[1]-mouseDownCoords[1]) > MOUSE_DRAG_MIN) {
-			mouseDragging = true;
-		}
-	}
-}
-
-function onKeyDown (e) {
-	pressed[e.keyCode] = true;
-}
-
-function onKeyUp (e) {
-	pressed[e.keyCode] = false;
-}
-
-function fixWhich(e) {
-  if (!e.which && e.button) {
-    if (e.button & 1) e.which = 1      // Left
-    else if (e.button & 4) e.which = 2 // Middle
-    else if (e.button & 2) e.which = 3 // Right
-  }
-}
-
-
-function leftClick() {
+function canvasLeftUp(mouseCoords) {
 	var up = mouseCoords;
 	for (var i = 0; i < buttons.length; i++) {
 		if (inRect(up, buttons[i].coords, 48, 48)) {
@@ -340,7 +263,7 @@ function leftClick() {
 	}
 	
 	up = viewToWorld(mouseCoords);
-	var s = pressed[keys['SHIFT']];
+	var s = InputManager.isPressed('SHIFT');
 	
 	if (!s) {
 		for (id in entities) {
@@ -369,15 +292,15 @@ function leftClick() {
 	}
 }
 
-function leftClickDrag() {
+function canvasLeftMove(mouseCoords) {
 	//rearrange such that up is top left, down is bottom right
-	var down = viewToWorld([mouseDownCoords[0], mouseDownCoords[1]]);
-	var up = viewToWorld([mouseCoords[0], mouseCoords[1]]);
+	var down = viewToWorld(canvasInput.leftMouseDownCoords);
+	var up = viewToWorld(mouseCoords);
 	fixRectCorners(down, up);
 	
 	for (id in entities) {
 		var entity = entities[id];
-		if (!pressed[keys['SHIFT']]) {
+		if (InputManager.isPressed('SHIFT')) {
 			entity.selected = false;
 			if (entities[id].control == 0) {
 				ownSelected--;
@@ -395,7 +318,7 @@ function leftClickDrag() {
 	}
 }
 
-function rightClick() {
+function canvasRightUp(mouseCoords) {
 	var up = viewToWorld(mouseCoords);
 	var dest = ''
 	var order = 'move';
@@ -418,7 +341,7 @@ function rightClick() {
 	for (id in entities) {
 		var entity = entities[id];
 		if (entity.selected && entity.control == 0) {
-			var msg = JSON.stringify([order, id, dest, pressed[keys['SHIFT']]]);
+			var msg = JSON.stringify([order, id, dest, InputManager.isPressed('SHIFT')]);
 			socket.send(msg);
 		}
 	}
@@ -488,16 +411,16 @@ function onTick() {
 		}
 	}
 	
-	if (pressed[keys['UP']]) {
+	if (InputManager.isPressed('UP')) {
 		camera[1] -= CAMERA_SPEED;
 	}
-	if (pressed[keys['DOWN']]) {
+	if (InputManager.isPressed('DOWN')) {
 		camera[1] += CAMERA_SPEED;
 	}
-	if (pressed[keys['LEFT']]) {
+	if (InputManager.isPressed('LEFT')) {
 		camera[0] -= CAMERA_SPEED;
 	}
-	if (pressed[keys['RIGHT']]) {
+	if (InputManager.isPressed('RIGHT')) {
 		camera[0] += CAMERA_SPEED;
 	}
 	
@@ -637,8 +560,11 @@ function drawFrame() {
 	//selection rectangle
 	if (mouseDragging) {
 		context.strokeStyle = "rgba(0,255,0,1.0)";
-		var down = [mouseDownCoords[0], mouseDownCoords[1]];
-		var up = [mouseCoords[0], mouseCoords[1]];
+		var c = canvasInput.leftMouseDownCoords;
+		var down = [c[0], c[1]]; //to prevent overwrite with fixRectCorners
+		c = canvasInput.mouseCoords;
+		var up = [c[0], c[1]];
+		delete c;
 		fixRectCorners(down,up);
 		context.strokeRect(down[0], down[1], up[0]-down[0], up[1]-down[1]);
 	}
