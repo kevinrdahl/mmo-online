@@ -180,7 +180,7 @@ function onMessage (data) {
 	console.log('Received at ' + currentTime);
 	console.log('Would read at ' + estReadTime);
 	console.log('Delta: ' + delta);
-	console.log('Target Delay: ' + targetDelay)l
+	console.log('Target Delay: ' + targetDelay);
 	
 	if (delta > 0) {
 		targetDelay -= Math.round(delta/10);
