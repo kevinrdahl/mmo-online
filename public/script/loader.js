@@ -188,6 +188,6 @@ function onFileReady(name) {
 				console.log(err.message);
 			}
 		}
-		//eval(LOADER.loadedFiles['script/client.js']);
+		eval(LOADER.loadedFiles['script/client.js']);
 	}
 }
