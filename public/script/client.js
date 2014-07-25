@@ -129,7 +129,6 @@ function pingSend() {
 
 function getServerTime() {
 	socket.send('["time"]');
-	console.log('mr server what time is it?');
 }
 
 function estServerTime(ticknum) {
@@ -158,7 +157,7 @@ function onMessage (data) {
 			gameStep = math.round(msg[0]-10);
 			lastMessage = gameStep;
 			startGame();
-			return
+			return;
 		}
 	} else if (msg[1] == 'ping') {
 		lastMessage = msg[0];
@@ -380,7 +379,6 @@ function setEntityCoords(id, coords) {
 
 function onTick() {
 	var currentTime = new Date().getTime();
-	console.log('tick');
 	
 	if (gameStep < 0) {
 		//wait for startGame()
