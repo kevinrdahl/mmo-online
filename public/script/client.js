@@ -190,9 +190,9 @@ function onMessage (data) {
 		}
 	} else {
 		if (delta > TICK_LEN/2) {
-			nextTick -= Math.round(TICK_LEN/2);
+			//nextTick -= Math.round(TICK_LEN/2);
 		} else {
-			nextTick -= delta; //this should handle waiting (?)
+			//nextTick -= delta; //this should handle waiting (?)
 		}
 	}	
 }
