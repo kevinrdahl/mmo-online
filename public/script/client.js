@@ -34,6 +34,8 @@ var waitSteps = 0;
 var pingOut = false;
 var deltas = [];
 
+var images = LOADED.images;
+
 var camera = [0,0];
 var CAMERA_SPEED = 20;
 
