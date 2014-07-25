@@ -139,7 +139,7 @@ function estServerTime(ticknum) {
 
 function estTickTime(ticknum) {
 	var currentTime = new Date().getTime();
-	if (tickNum == gameStep) {
+	if (ticknum == gameStep) {
 		return currentTime;
 	} else if (ticknum > gameStep) {
 		return nextStep + TICK_LEN*(ticknum-gameStep-1);
@@ -155,7 +155,7 @@ function onMessage (data) {
 	if (msg[1] == 'time') {
 		serverTime = [msg[2], msg[0]];
 		if (gameState == 'connecting') {
-			gameStep = math.round(msg[0]-10);
+			gameStep = Math.round(msg[0]-10);
 			lastMessage = gameStep;
 			startGame();
 			return;
