@@ -134,6 +134,7 @@ function getServerTime() {
 
 function estServerTime(ticknum) {
 	//serverTime[0] will always be less than or equal to ticknum
+	console.log(serverTime);
 	return serverTime[0] + TICK_LEN*(ticknum-serverTime[1]);
 }
 
@@ -173,6 +174,8 @@ function onMessage (data) {
 		return;
 	}
 	
+	lastMessage = gameStep;
+	
 	var estSendTime = estServerTime(msg[0]);
 	var estReadTime = estTickTime(msg[0]);
 	var currentTime = new Date().getTime();
@@ -191,8 +194,6 @@ function onMessage (data) {
 	} else {
 		targetDelay -= Math.round(delta/3); //looks strange that both are subtraction, but here delta is negative
 	}
-	
-	console.log(delta + '   ' + targetDelay);
 	
 	if (msg[0] < gameStep) {
 		//PANIC
