@@ -128,6 +128,7 @@ function pingSend() {
 
 function getServerTime() {
 	socket.send('["time"]');
+	console.log('mr server what time is it?');
 }
 
 function estServerTime(ticknum) {
