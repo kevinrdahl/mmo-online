@@ -61,6 +61,7 @@ function openConnection() {
 	socket.on("disconnect", onDisconnect);
 	socket.on("message", onMessage);
 	getServerTime();
+	console.log('connecting!');
 }
 
 function startGame() {
@@ -379,6 +380,7 @@ function setEntityCoords(id, coords) {
 
 function onTick() {
 	var currentTime = new Date().getTime();
+	console.log('tick');
 	
 	if (gameStep < 0) {
 		//wait for startGame()
