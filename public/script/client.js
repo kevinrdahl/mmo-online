@@ -101,7 +101,7 @@ function startGame() {
 	});
 	
 	canvasInput.leftClickUp = canvasLeftUp;
-	canvasInput.leftClickMove = canvasLeftDown;
+	canvasInput.leftClickMove = canvasLeftMove;
 	canvasInput.rightClickUp = canvasRightUp;
 	canvasInput.keyDown = keyDown;
 	canvasInput.keyDown = keyUp;
