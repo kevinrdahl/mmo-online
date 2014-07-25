@@ -144,7 +144,7 @@ function estTickTime(ticknum) {
 	} else if (ticknum > gameStep) {
 		return nextTick + TICK_LEN*(ticknum-gameStep-1);
 	} else {
-		return currentTime + TICK_LEN*(ticknum-gamestep);
+		return currentTime + TICK_LEN*(ticknum-gameStep);
 	}
 }
 
