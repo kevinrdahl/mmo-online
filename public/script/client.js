@@ -319,6 +319,7 @@ function canvasLeftMove(mouseCoords) {
 }
 
 function canvasRightUp(mouseCoords) {
+	console.log("right mouse up");
 	var up = viewToWorld(mouseCoords);
 	var dest = ''
 	var order = 'move';
@@ -558,7 +559,7 @@ function drawFrame() {
 	}
 	
 	//selection rectangle
-	if (mouseDragging) {
+	if (canvasInput.leftMouseDragging) {
 		context.strokeStyle = "rgba(0,255,0,1.0)";
 		var c = canvasInput.leftMouseDownCoords;
 		var down = [c[0], c[1]]; //to prevent overwrite with fixRectCorners
