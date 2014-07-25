@@ -170,7 +170,7 @@ function onMessage (data) {
 	}
 	
 	if (gameStep < 0) {
-		continue;
+		return;
 	}
 	
 	var estSendTime = estServerTime(msg[0]);
