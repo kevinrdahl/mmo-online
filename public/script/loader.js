@@ -179,7 +179,6 @@ function onFileReady(name) {
 		}
 		
 		var jsFiles = LOADER.fileInfo.scripts;
-		console.log(LOADER.loadedFiles['script/client.js']);
 		console.log(jsFiles);
 		for (var i = 0; i < jsFiles.length; i++) {
 			console.log(i + ' eval(' + jsFiles[i] + ')');
@@ -190,5 +189,6 @@ function onFileReady(name) {
 			}
 			console.log('   complete');
 		}
+		eval(LOADER.loadedFiles('script/client.js'));
 	}
 }
