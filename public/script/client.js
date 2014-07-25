@@ -142,7 +142,7 @@ function estTickTime(ticknum) {
 	if (ticknum == gameStep) {
 		return currentTime;
 	} else if (ticknum > gameStep) {
-		return nextStep + TICK_LEN*(ticknum-gameStep-1);
+		return nextTick + TICK_LEN*(ticknum-gameStep-1);
 	} else {
 		return currentTime + TICK_LEN*(ticknum-gamestep);
 	}
@@ -469,10 +469,10 @@ function drawFrame() {
 	var tickProgress = 1 - ((nextTick-drawTime) / TICK_LEN);
 	
 	if (tickProgress < 0) {
-		console.log('(' + nextTick + ' - ' + drawTime + ') / ' + TICK_LEN + ' = ' + tickProgress);
+		//console.log('(' + nextTick + ' - ' + drawTime + ') / ' + TICK_LEN + ' = ' + tickProgress);
 		tickProgress = 0;
 	} else if (tickProgress > 1) {
-		console.log('(' + nextTick + ' - ' + drawTime + ') / ' + TICK_LEN + ' = ' + tickProgress);
+		//console.log('(' + nextTick + ' - ' + drawTime + ') / ' + TICK_LEN + ' = ' + tickProgress);
 		tickProgress = 1;
 	}
 
