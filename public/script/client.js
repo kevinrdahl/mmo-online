@@ -169,6 +169,10 @@ function onMessage (data) {
 		messages.push(msg);
 	}
 	
+	if (gameStep < 0) {
+		continue;
+	}
+	
 	var estSendTime = estServerTime(msg[0]);
 	var estReadTime = estTickTime(msg[0]);
 	var currentTime = new Date().getTime();
