@@ -398,7 +398,7 @@ function onTick() {
 		nextTick += TICK_LEN;
 	}
 	
-	//setTick();
+	setTimeout(onTick, 10);
 }
 
 function gameLogic() {
@@ -674,7 +674,7 @@ function getScrollbarWidth() {
 
 gameStep = -1;
 nextTick = new Date().getTime()+TICK_LEN;
-setInterval(onTick, 5);//onTick();
+//setInterval(onTick, 5);//onTick();
 onTick();
 var lastDraw = nextTick;
 window.requestAnimationFrame(drawFrame);
