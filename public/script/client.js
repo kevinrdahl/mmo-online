@@ -379,12 +379,11 @@ function setEntityCoords(id, coords) {
 }
 
 function onTick() {
-	console.log('tick');
 	var currentTime = new Date().getTime();
 	
 	if (gameStep < 0) {
 		//wait for startGame()
-		setTick();
+		//setTick();
 		return;
 	}
 
