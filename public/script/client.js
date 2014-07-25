@@ -153,6 +153,8 @@ function onMessage (data) {
 	var msg = JSON.parse(data);
 	
 	if (msg[1] == 'time') {
+		console.log('Server time is ' + msg[2]);
+		console.log('Current time is ' + new Date().getTime());
 		serverTime = [msg[2], msg[0]];
 		if (gameState == 'connecting') {
 			gameStep = Math.round(msg[0]-10);
@@ -181,12 +183,12 @@ function onMessage (data) {
 	
 	var delta = estSendTime - currentTime;
 	
-	console.log('Step: ' + gameStep);
+	/*console.log('Step: ' + gameStep);
 	console.log('Est. Server Time: ' + estSendTime);
 	console.log('Received at ' + currentTime);
 	console.log('Would read at ' + estReadTime);
 	console.log('Delta: ' + delta);
-	console.log('Target Delay: ' + targetDelay);
+	console.log('Target Delay: ' + targetDelay);*/
 	
 	if (delta > 0) {
 		targetDelay -= Math.round(delta/10);
@@ -211,7 +213,7 @@ function onMessage (data) {
 		}
 	}
 	
-	console.log("nextTick: " + nextTick);
+	//console.log("nextTick: " + nextTick);
 }
 
 function readMessage(msg) {
