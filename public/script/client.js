@@ -103,8 +103,8 @@ function startGame() {
 	canvasInput.leftClickUp = canvasLeftUp;
 	canvasInput.leftClickMove = canvasLeftMove;
 	canvasInput.rightClickUp = canvasRightUp;
-	canvasInput.keyDown = keyDown;
-	canvasInput.keyDown = keyUp;
+	canvasInput.keyDown = onKeyDown;
+	canvasInput.keyDown = onKeyUp;
 }
 
 function sendChat(e) {
@@ -484,10 +484,10 @@ function drawFrame() {
 	var tickProgress = 1 - ((nextTick-drawTime) / TICK_LEN);
 	
 	if (tickProgress < 0) {
-		console.log('(' + nextTick + ' - ' + drawTime + ') / ' + TICK_LEN + ' = ' + tickProgress);
+		//console.log('(' + nextTick + ' - ' + drawTime + ') / ' + TICK_LEN + ' = ' + tickProgress);
 		tickProgress = 0;
 	} else if (tickProgress > 1) {
-		console.log('(' + nextTick + ' - ' + drawTime + ') / ' + TICK_LEN + ' = ' + tickProgress);
+		//console.log('(' + nextTick + ' - ' + drawTime + ') / ' + TICK_LEN + ' = ' + tickProgress);
 		tickProgress = 1;
 	}
 
