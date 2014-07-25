@@ -180,6 +180,7 @@ function onFileReady(name) {
 		
 		var scripts = LOADER.fileInfo.scripts;
 		for (var i = 0; i < scripts.length; i++) {
+			console.log('eval(' + scripts[i] + ')');
 			eval(LOADER.loadedFiles[scripts[i]]);
 		}
 	}
