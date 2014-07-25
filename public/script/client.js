@@ -250,48 +250,52 @@ function canvasLeftUp(mouseCoords) {
 		}
 	}
 	
-	var entity;
-	for (id in entities) {
-		entity = entities[id];
-		if (inRect(up, entity.coords, 48, 48)) {
-			if (entity.control != 0 && ownSelected != 0) {
-				continue;
+	if (canvasInput.leftMouseDragging) {
+		//click and drag
+		var down = viewToWorld(canvasInput.leftMouseDownCoords);
+		var up = viewToWorld(mouseCoords);
+		fixRectCorners(down, up);
+	
+		for (id in entities) {
+			var entity = entities[id];
+			if (InputManager.isPressed('SHIFT')) {
+				entity.selected = false;
+				if (entities[id].control == 0) {
+					ownSelected--;
+				}	
 			}
-			entity.selected = true;
-			if (entities[id].control == 0) {
-				ownSelected++;
+			if (entity.control == 0) {
+				if ((up[0] <= entity.coords[0] && entity.coords[0] <= down[0])
+					&&(up[1] <= entity.coords[1] && entity.coords[1] <= down[1])) {
+					entity.selected = true;
+					if (entities[id].control == 0) {
+						ownSelected++;
+					}
+				}
 			}
-			if (!s) {
-				break;
+		}
+	} else {
+		var entity;
+		for (id in entities) {
+			entity = entities[id];
+			if (inRect(up, entity.coords, 48, 48)) {
+				if (entity.control != 0 && ownSelected != 0) {
+					continue;
+				}
+				entity.selected = true;
+				if (entities[id].control == 0) {
+					ownSelected++;
+				}
+				if (!s) {
+					break;
+				}
 			}
 		}
 	}
 }
 
 function canvasLeftMove(mouseCoords) {
-	//rearrange such that up is top left, down is bottom right
-	var down = viewToWorld(canvasInput.leftMouseDownCoords);
-	var up = viewToWorld(mouseCoords);
-	fixRectCorners(down, up);
-	
-	for (id in entities) {
-		var entity = entities[id];
-		if (InputManager.isPressed('SHIFT')) {
-			entity.selected = false;
-			if (entities[id].control == 0) {
-				ownSelected--;
-			}	
-		}
-		if (entity.control == 0) {
-			if ((up[0] <= entity.coords[0] && entity.coords[0] <= down[0])
-				&&(up[1] <= entity.coords[1] && entity.coords[1] <= down[1])) {
-				entity.selected = true;
-				if (entities[id].control == 0) {
-					ownSelected++;
-				}
-			}
-		}
-	}
+	//nothing yet
 }
 
 function canvasRightUp(mouseCoords) {
