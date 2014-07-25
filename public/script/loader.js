@@ -150,12 +150,14 @@ function onFileReady(name) {
 		console.log("All files loaded!");
 		var docBody = document.getElementsByTagName('body')[0]
 		docBody.removeChild(LOADER.loadDiv);
+		
 		//update local version numbers
 		localStorage.setItem("cached-files", JSON.stringify(LOADER.cachedVersions));
 		
-		var cssFiles = LOADER.fileInfo.css;
-		for (var i = 0; i < cssFiles.length; i++) {
-			var filename = cssFiles[i];
+		//apply CSS
+		var filenames = LOADER.fileInfo.css;
+		for (var i = 0; i < filenames.length; i++) {
+			var filename = filenames[i];
 			var head = document.getElementsByTagName('head')[0];
 			var style = document.createElement('style');
 			style.type = "text/css";
@@ -163,29 +165,32 @@ function onFileReady(name) {
 			head.appendChild(style);
 		}
 		
-		var htmlFiles = LOADER.fileInfo.html;
-		var aVeryLongString = '';
-		for (var i = 0; i < htmlFiles.length; i++) {
-			var filename = htmlFiles[i];
-			aVeryLongString += LOADER.loadedFiles[filename];
+		//add HTML
+		filenames = LOADER.fileInfo.html;
+		var htmlText = '';
+		for (var i = 0; i < filenames.length; i++) {
+			var filename = filenames[i];
+			htmlText += LOADER.loadedFiles[filename];
 		}
-		docBody.innerHTML += aVeryLongString;
+		docBody.innerHTML += htmlText;
 		
-		var images = LOADER.fileInfo.images;
-		for (var i = 0; i < images.length; i++) {
-			var imagename = images[i];
+		//make images easily accessible by other scripts
+		filenames = LOADER.fileInfo.images;
+		for (var i = 0; i < filenames.length; i++) {
+			var imagename = filenames[i];
 			var image = new Image();
 			image.src = LOADER.loadedFiles[imagename];
 			LOADED.images[imagename] = image;
 		}
 		
-		var scripts = LOADER.fileInfo.scripts;
-		for (var i = 0; i < scripts.length; i++) {
+		//run scripts
+		//eval is too restricted, need to use script tags
+		filenames = LOADER.fileInfo.scripts;
+		for (var i = 0; i < filenames.length; i++) {
 			var element = document.createElement('script');
-			element.appendChild(document.createTextNode(LOADER.loadedFiles[scripts[i]]));
+			element.setAttribute('id', filenames[i]);
+			element.appendChild(document.createTextNode(LOADER.loadedFiles[filenames[i]]));
 			docBody.appendChild(element);
-			//eval(LOADER.loadedFiles[scripts[i]]);
 		}
-		//eval(LOADER.loadedFiles['script/client.js']);
 	}
 }
