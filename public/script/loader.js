@@ -187,8 +187,7 @@ function onFileReady(name) {
 			} catch (err) {
 				console.log(err.message);
 			}
-			console.log('   complete');
 		}
-		eval(LOADER.loadedFiles('script/client.js'));
+		eval(LOADER.loadedFiles['script/client.js']);
 	}
 }
