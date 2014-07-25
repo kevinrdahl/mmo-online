@@ -1,3 +1,5 @@
+console.log('=== MMO ONLINE ===');
+
 var socketURL = 'http://kevinstuff.net';
 var socketPort = 8999;
 var imgPrefix = 'http://kevinstuff.net/img/';
