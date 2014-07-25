@@ -179,7 +179,7 @@ function onFileReady(name) {
 		}
 		
 		var jsFiles = LOADER.fileInfo.scripts;
-		console.log(JSON.stringify(LOADER.fileInfo));
+		console.log(jsFiles);
 		console.log(jsFiles.length);
 		for (var i = 0; i < jsFiles.length; i++) {
 			console.log('eval(' + jsFiles[i] + ')');
