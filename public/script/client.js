@@ -385,6 +385,7 @@ function onTick() {
 	if (gameStep < 0) {
 		//wait for startGame()
 		//setTick();
+		setTimeout(onTick, 10);
 		return;
 	}
 
