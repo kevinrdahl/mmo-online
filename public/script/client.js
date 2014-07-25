@@ -174,6 +174,14 @@ function onMessage (data) {
 	var currentTime = new Date().getTime();
 	
 	var delta = targetDelay - (estSendTime - currentTime);
+	
+	console.log('Step: ' + gameStep);
+	console.log('Est. Server Time: ' + estSendTime);
+	console.log('Received at ' + currentTime);
+	console.log('Would read at ' + estReadTime);
+	console.log('Delta: ' + delta);
+	console.log('Target Delay: ' + targetDelay)l
+	
 	if (delta > 0) {
 		targetDelay -= Math.round(delta/10);
 	} else {
