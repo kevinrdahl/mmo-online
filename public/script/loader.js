@@ -187,5 +187,6 @@ function onFileReady(name) {
 				console.log(err.message);
 			}
 		}
+		console.log('eval complete');
 	}
 }
