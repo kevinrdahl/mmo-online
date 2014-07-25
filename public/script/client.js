@@ -1,6 +1,7 @@
+console.log ('=== MMO ONLINE ===');
+
 var socketURL = 'http://kevinstuff.net';
 var socketPort = 8999;
-var imgPrefix = 'http://kevinstuff.net/img/';
 
 var socket;
 var canvas = document.getElementById("gameview");
@@ -320,7 +321,7 @@ function canvasLeftMove(mouseCoords) {
 
 function canvasRightUp(mouseCoords) {
 	var up = viewToWorld(mouseCoords);
-	var dest = ''
+	var dest = '';
 	var order = 'move';
 	
 	for (id in entities) {
