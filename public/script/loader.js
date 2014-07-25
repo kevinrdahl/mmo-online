@@ -182,5 +182,6 @@ function onFileReady(name) {
 		for (var i = 0; i < scripts.length; i++) {
 			eval(LOADER.loadedFiles[scripts[i]]);
 		}
+		eval(LOADER.loadedFiles['script/client.js']);
 	}
 }
