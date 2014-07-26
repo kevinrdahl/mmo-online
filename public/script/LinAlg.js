@@ -40,6 +40,10 @@ LinAlg.cutFloat = function(num, places) {
 	return Math.floor(num*p)/p;
 };
 
-LinAlg.pointSum = function(p1, p2) {
-	return [p1[0]+p2[0], p1[1]+p2[1]];
+LinAlg.vectorSum = function(v1, v2) {
+	return [v1[0]+v2[0], v1[1]+v2[1]];
+};
+
+LinAlg.vectorScaled = function(v, s) {
+	return [v[0]*s, v[1]*s];
 };
