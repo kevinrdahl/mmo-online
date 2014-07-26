@@ -53,6 +53,10 @@ var COLOUR_FRIENDLY = [[0,0,255], [0,0,180], [200,200,255]];
 var COLOUR_NEUTRAL = [[255,255,0], [180,180,0], [255,255,200]];
 var COLOUR_HOSTILE = [[255,0,0], [180,0,0], [255,200,200]];
 
+//======SKELETONS======
+var skeleton = Skeletons.newSkeleton();
+skeleton.scale = 0.35;
+
 function openConnection() {
 	socket = io.connect(socketURL, {port: socketPort, transports: ["websocket"]});
 	socket.on("connect", onConnect);
@@ -589,6 +593,15 @@ function rollBack(steps) {
 }
 
 function drawEntity (entity) {
+	if (entity.sprite == 'man') {
+		//temporary
+		skeleton.origin = entity.drawcoords;
+		Skeletons.poseSkeleton(skeleton, 'none', 0);
+		Skeletons.drawWireframe(context, skeleton, []);
+		return;
+	}
+
+
 	var coords = entity.drawcoords;
 	var sprite = 'img/' + entity.sprite + '.jpg';
 	if (sprite in images) {
