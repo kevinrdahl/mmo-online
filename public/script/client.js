@@ -264,7 +264,6 @@ function canvasLeftUp(mouseCoords) {
 	if (canvasInput.leftMouseDragging) {
 		//click and drag
 		var down = viewToWorld(canvasInput.leftMouseDownCoords);
-		var up = viewToWorld(mouseCoords);
 		fixRectCorners(down, up);
 	
 		for (id in entities) {
@@ -289,6 +288,11 @@ function canvasLeftUp(mouseCoords) {
 		var entity;
 		for (id in entities) {
 			entity = entities[id];
+			if (entity.control == 0) {
+				console.log(mouseCoords);
+				console.log(up);
+				console.log(entity.coords);
+			}
 			if (inRect(up, entity.coords, 48, 48)) {
 				if (entity.control != 0 && ownSelected != 0) {
 					continue;
@@ -692,7 +696,7 @@ function inRect(point, coords,width,height) {
 var yCoefficient = 1.4;
 
 function viewToWorld(coords) {
-	return [coords[0]+camera[0], (coords[1]+camera[1])*yCoefficient];
+	return [coords[0]+camera[0], coords[1]*yCoefficient+camera[1]];
 }
 
 function worldToView(coords) {
