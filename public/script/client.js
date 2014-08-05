@@ -133,7 +133,6 @@ function pingSend() {
 
 function onMessage (message) {
 	var data = message.data;
-	console.log(data);
 	var msg = JSON.parse(data);
 	
 	if (gameStep < 0) {
@@ -179,6 +178,7 @@ function onMessage (message) {
 	} else if (msg[1] == 'chat') {
 		chatLog(msg[2]);
 	} else {
+		console.log(data);
 		messages.push(msg);
 	}
 }
@@ -435,13 +435,17 @@ function gameLogic() {
 	var entity;
 	for (id in entities) {
 		entity = entities[id];
+		if (typeof entity === 'undefined') {
+			console.log('Trying to update nonexistent unit ' + id);
+			continue;
+		}
 		
 		if (gameStep == lastMessage) {
 			entity.history = [];
 		}
 		entity.history.push(entity.coords);
 		
-		//temporary, no animations yet so attack basically means stop
+		//temporary, attack basically means stop
 		if (entity.order[0] != 'move') {
 			continue;
 		}
@@ -492,6 +496,10 @@ function drawFrame() {
 	//entities
 	for (id in entities) {
 		var entity = entities[id];
+		if (typeof entity === 'undefined') {
+			console.log('Trying to draw nonexistent unit ' + id);
+			continue;
+		}
 		var coords = entity.coords;
 		var nextcoords = entity.nextcoords;
 
