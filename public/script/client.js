@@ -625,7 +625,7 @@ function rollBack(steps) {
 	gameStep -= steps;
 }
 
-var imageMap = [[ ["head",[["img/cia.png",128,128,80,0,16]]], ["armleft2",[["img/knife.png",100,50,-45,-22,22]]] ]];
+var imageMap = [[ ["head",[["img/cia.gif",128,128,80,0,16]]], ["armleft2",[["img/knife.png",100,50,-45,-22,22]]] ]];
 
 function drawEntity (entity) {
 	if (entity.sprite == 'man') {
