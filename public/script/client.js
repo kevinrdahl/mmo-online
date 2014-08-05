@@ -27,7 +27,7 @@ document.oncontextmenu = function () {return false;};
 document.onclick = function(e) {e.preventDefault(); e.defaultPrevented = true; e.stopPropagation(); return false;};
 window.onresize = setCanvasSize;
 
-var logLevel = (QueryString.loglevel === 'undefined') ? 'all' : QueryString.loglevel;
+var logLevel = (QueryString.loglevel === 'undefined') ? 'normal' : QueryString.loglevel;
 
 var nextTick;
 var TICK_LEN = 33;
@@ -441,10 +441,6 @@ function gameLogic() {
 	var entity;
 	for (id in entities) {
 		entity = entities[id];
-		if (typeof entity === 'undefined') {
-			console.log('Trying to update nonexistent unit ' + id);
-			continue;
-		}
 		
 		if (gameStep == lastMessage) {
 			entity.history = [];
@@ -482,7 +478,9 @@ function gameLogic() {
 			try {
 				angle = LinAlg.pointAngle(entity.coords, dest);
 			} catch (err) {
-				alert('drawentity ' + err);
+				console.log('drawentity ' + err);
+				console.log(entity);
+				angle = 0;
 			}
 			entity.nextcoords = LinAlg.pointOffset(entity.coords, angle, entity.stats.spd);
 		}
@@ -506,10 +504,6 @@ function drawFrame() {
 	//entities
 	for (id in entities) {
 		var entity = entities[id];
-		if (typeof entity === 'undefined') {
-			console.log('Trying to draw nonexistent unit ' + id);
-			continue;
-		}
 		var coords = entity.coords;
 		var nextcoords = entity.nextcoords;
 
@@ -519,9 +513,8 @@ function drawFrame() {
 			try {
 				var angle = LinAlg.pointAngle(coords, nextcoords);
 			} catch (err) {
+				angle = 0;
 				console.log('drawframe ' + err);
-				console.log(coords);
-				console.log(nextcoords);
 				console.log(entity);
 			}
 			var dist = LinAlg.pointDist(coords, nextcoords) * tickProgress;
@@ -644,9 +637,6 @@ function rollBack(steps) {
 		entity = entities[id];
 		which = entity.history.length-steps-1; //if this throws exceptions, it's the fault of the caller
 		entity.coords = entity.history[which];
-		if (entity.coords === 'undefined') {
-			alert('fuck');
-		}
 		entity.history = [];
 	}
 	gameStep -= steps;
