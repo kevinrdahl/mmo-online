@@ -1,3 +1,27 @@
+var QueryString = function () {
+  // This function is anonymous, is executed immediately and 
+  // the return value is assigned to QueryString!
+  var query_string = {};
+  var query = window.location.search.substring(1);
+  var vars = query.split("&");
+  for (var i=0;i<vars.length;i++) {
+    var pair = vars[i].split("=");
+    	// If first entry with this name
+    if (typeof query_string[pair[0]] === "undefined") {
+      query_string[pair[0]] = pair[1];
+    	// If second entry with this name
+    } else if (typeof query_string[pair[0]] === "string") {
+      var arr = [ query_string[pair[0]], pair[1] ];
+      query_string[pair[0]] = arr;
+    	// If third or later entry with this name
+    } else {
+      query_string[pair[0]].push(pair[1]);
+    }
+  } 
+    return query_string;
+} ();
+console.log(QueryString);
+
 console.log("----LOADING----");
 
 var LOADED = {
@@ -17,31 +41,38 @@ document.getElementsByTagName('body')[0].appendChild(LOADER.loadDiv);
 begin();
 
 function begin() {
-	if(typeof(Storage) !== "undefined") {
+	if (typeof(Storage) !== "undefined") {
 		console.log('Web Storage supported!');
 	} else {
 		alert ('Your browser does not support Web Storage.');
 		return;
 	}
+	
 	var xmlhttp = new XMLHttpRequest();
 	xmlhttp.onload = onGetFileInfo;
 	xmlhttp.open("GET", LOADER.filePrefix+"version/mmoo.txt?t="+new Date().getTime(), true);
+	xmlhttp.overrideMimeType('text/plain');
 	xmlhttp.send();
 	console.log("Retrieving file information.");
 }
 
 function onGetFileInfo () {
-	if (this.status == 200) {
+	if (this.status == 200 || this.status == 0) {
 		LOADER.fileInfo = JSON.parse(this.responseText);
 		loadFiles();
 	} else {
-		alert("Unable to retrieve file information from the server.");
+		alert("Unable to retrieve file information from the server. (" + this.status + ")");
 	}
 }
 
 function loadFiles() {
 	if (LOADER.cachedVersions != null) {
-		LOADER.cachedVersions = JSON.parse(LOADER.cachedVersions);
+		if (QueryString.load == 'all') {
+			console.log('Load it all!');
+			LOADER.cachedVersions = {};
+		} else {
+			LOADER.cachedVersions = JSON.parse(LOADER.cachedVersions);
+		}
 	} else {
 		console.log("No files cached");
 		LOADER.cachedVersions = {};

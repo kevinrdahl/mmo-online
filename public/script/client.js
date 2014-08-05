@@ -2,7 +2,11 @@ console.log('=== MMO ONLINE ===');
 
 var socketURL = 'http://kevinstuff.net';
 var socketPort = 8999;
-var imgPrefix = 'http://kevinstuff.net/img/';
+
+
+if (QueryString.host == 'local') {
+	socketURL = '127.0.0.1';
+}
 
 var socket;
 var canvas = document.getElementById("gameview");
@@ -58,10 +62,10 @@ var skeleton = Skeletons.newSkeleton();
 skeleton.scale = 0.35;
 
 function openConnection() {
-	socket = io.connect(socketURL, {port: socketPort, transports: ["websocket"]});
-	socket.on("connect", onConnect);
-	socket.on("disconnect", onDisconnect);
-	socket.on("message", onMessage);
+	socket = new WebSocket('ws:' + socketURL + ':' + socketPort);
+	socket.addEventListener("connect", onConnect);
+	socket.addEventListener("disconnect", onDisconnect);
+	socket.addEventListener("message", onMessage);
 }
 
 function startGame() {
@@ -125,7 +129,8 @@ function pingSend() {
 	socket.send(JSON.stringify(['ping']));
 }
 
-function onMessage (data) {
+function onMessage (message) {
+	var data = message.data;
 	console.log(data);
 	var msg = JSON.parse(data);
 	

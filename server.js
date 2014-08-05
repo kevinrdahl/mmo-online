@@ -1,8 +1,18 @@
 var port = 8999;
 
 var util = require('util');
-var io = require('socket.io').listen(port, { log: false });
-var LinAlg = require('./public/LinAlg');
+//var io = require('socket.io').listen(port, { log: false });
+
+var WebSocketServer = require('ws').Server
+var wss = new WebSocketServer({port: port});
+
+var LinAlg;
+
+try {
+	LinAlg = require('./public/LinAlg');
+} catch (err) {
+	LinAlg = require('./public/script/LinAlg');
+}
 
 var clients = [];
 var entities = {};
@@ -16,11 +26,13 @@ var nextTick;
 addEntity(entityNum, 'bears', [400,300], 'bear', {spd:3, hp:300, maxhp:300, atktime:30});
 entityNum++;
 
-io.sockets.on('connection', function (socket) {
+wss.on('connection', function (socket) {
+	var id = new Date().getTime();
+	//TODO: make this safer ^
+	socket.id = id.toString();
 	util.log('Client connected: ' + socket.id);
 	socket.on('message', onMessage);
-	socket.on('disconnect', onDisconnect);
-	socket.set("log level", 0);
+	socket.on('close', onDisconnect);
 	
 	socket.send(JSON.stringify([gameStep, 'ping']));
 	newClient(socket);
