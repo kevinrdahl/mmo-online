@@ -1,6 +1,6 @@
 console.log('=== MMO ONLINE ===');
 
-var socketURL = 'http://kevinstuff.net';
+var socketURL = 'kevinstuff.net';
 var socketPort = 8999;
 
 
@@ -62,7 +62,9 @@ var skeleton = JSON.parse(LOADED.json['json/skeleton.json']);
 skeleton.scale = 0.35;
 
 function openConnection() {
-	socket = new WebSocket('ws:' + socketURL + ':' + socketPort);
+	var addr = 'ws://' + socketURL + ':' + socketPort;
+	console.log("Attempting to connect to " + addr);
+	socket = new WebSocket(addr);
 	socket.addEventListener("connect", onConnect);
 	socket.addEventListener("disconnect", onDisconnect);
 	socket.addEventListener("message", onMessage);
