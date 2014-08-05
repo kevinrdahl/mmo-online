@@ -44,6 +44,16 @@ LinAlg.vectorSum = function(v1, v2) {
 	return [v1[0]+v2[0], v1[1]+v2[1]];
 };
 
+//v1 - v2
+LinAlg.vectorSub = function(v1, v2) {
+	return [v1[0]-v2[0], v1[1]-v2[1]];
+};
+
 LinAlg.vectorScaled = function(v, s) {
 	return [v[0]*s, v[1]*s];
+};
+
+//v flipped across the line x=i
+LinAlg.vectorFlipY = function(v, i) {
+	return [-(v[0]-i)+i, v[1]];
 };

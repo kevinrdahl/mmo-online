@@ -1,0 +1,892 @@
+{
+  "origin": [
+    300,
+    450
+  ],
+  "originOffset": [
+    0,
+    -155
+  ],
+  "angle": 0,
+  "scale": 1,
+  "bones": {
+    "chest": {
+      "angle": 270,
+      "len": 150,
+      "parent": "origin",
+      "children": [
+        "head",
+        "shoulderleft",
+        "shoulderright"
+      ],
+      "rigid": false,
+      "coords": [
+        300,
+        295
+      ],
+      "finalangle": 270,
+      "endcoords": [
+        300,
+        145
+      ]
+    },
+    "head": {
+      "angle": 270,
+      "len": 50,
+      "parent": "chest",
+      "children": [],
+      "rigid": false,
+      "coords": [
+        300,
+        145
+      ],
+      "finalangle": 270,
+      "endcoords": [
+        300,
+        95
+      ]
+    },
+    "legleft1": {
+      "angle": 110,
+      "len": 80,
+      "parent": "origin",
+      "children": [
+        "legleft2"
+      ],
+      "rigid": false,
+      "coords": [
+        300,
+        295
+      ],
+      "finalangle": 110,
+      "endcoords": [
+        272.63,
+        370.17
+      ]
+    },
+    "legleft2": {
+      "angle": 95,
+      "len": 80,
+      "parent": "legleft1",
+      "children": [
+        "footleft"
+      ],
+      "rigid": false,
+      "coords": [
+        272.63,
+        370.17
+      ],
+      "finalangle": 95,
+      "endcoords": [
+        265.65,
+        449.86
+      ]
+    },
+    "footleft": {
+      "angle": 0,
+      "len": 20,
+      "parent": "legleft2",
+      "children": [],
+      "rigid": false,
+      "coords": [
+        265.65,
+        449.86
+      ],
+      "finalangle": 0,
+      "endcoords": [
+        285.64,
+        449.86
+      ]
+    },
+    "legright1": {
+      "angle": 70,
+      "len": 80,
+      "parent": "origin",
+      "children": [
+        "legright2"
+      ],
+      "rigid": false,
+      "coords": [
+        300,
+        295
+      ],
+      "finalangle": 70,
+      "endcoords": [
+        327.36,
+        370.17
+      ]
+    },
+    "legright2": {
+      "angle": 85,
+      "len": 80,
+      "parent": "legright1",
+      "children": [
+        "footright"
+      ],
+      "rigid": false,
+      "coords": [
+        327.36,
+        370.17
+      ],
+      "finalangle": 85,
+      "endcoords": [
+        334.33,
+        449.86
+      ]
+    },
+    "footright": {
+      "angle": 0,
+      "len": 20,
+      "parent": "legright2",
+      "children": [],
+      "rigid": false,
+      "coords": [
+        334.33,
+        449.86
+      ],
+      "finalangle": 0,
+      "endcoords": [
+        354.33,
+        449.86
+      ]
+    },
+    "shoulderleft": {
+      "angle": -110,
+      "len": 45,
+      "parent": "chest",
+      "children": [
+        "armleft1"
+      ],
+      "rigid": true,
+      "coords": [
+        300,
+        145
+      ],
+      "finalangle": 160,
+      "endcoords": [
+        257.71,
+        160.39
+      ]
+    },
+    "armleft1": {
+      "angle": 106.48356542967167,
+      "len": 70,
+      "parent": "shoulderleft",
+      "children": [
+        "armleft2"
+      ],
+      "rigid": false,
+      "coords": [
+        257.71,
+        160.39
+      ],
+      "finalangle": 106.48356542967167,
+      "endcoords": [
+        237.84,
+        227.51
+      ]
+    },
+    "armleft2": {
+      "angle": 38.20532768194505,
+      "len": 65,
+      "parent": "armleft1",
+      "children": [],
+      "rigid": false,
+      "coords": [
+        237.84,
+        227.51
+      ],
+      "finalangle": 38.20532768194505,
+      "endcoords": [
+        288.91,
+        267.71
+      ]
+    },
+    "shoulderright": {
+      "angle": 110,
+      "len": 45,
+      "parent": "chest",
+      "children": [
+        "armright1"
+      ],
+      "rigid": true,
+      "coords": [
+        300,
+        145
+      ],
+      "finalangle": 380,
+      "endcoords": [
+        342.28,
+        160.39
+      ]
+    },
+    "armright1": {
+      "angle": 95.3067299891211,
+      "len": 70,
+      "parent": "shoulderright",
+      "children": [
+        "armright2"
+      ],
+      "rigid": false,
+      "coords": [
+        342.28,
+        160.39
+      ],
+      "finalangle": 95.3067299891211,
+      "endcoords": [
+        335.8,
+        230.08
+      ]
+    },
+    "armright2": {
+      "angle": 70.21076592105635,
+      "len": 65,
+      "parent": "armright1",
+      "children": [],
+      "rigid": false,
+      "coords": [
+        335.8,
+        230.08
+      ],
+      "finalangle": 70.21076592105635,
+      "endcoords": [
+        357.8,
+        291.24
+      ]
+    }
+  },
+  "animations": {
+    "none": {
+      "duration": 1,
+      "chest": {
+        "angle": [
+          [
+            0,
+            270
+          ]
+        ]
+      },
+      "head": {
+        "angle": [
+          [
+            0,
+            270
+          ]
+        ]
+      },
+      "legleft1": {
+        "angle": [
+          [
+            0,
+            110
+          ]
+        ]
+      },
+      "legleft2": {
+        "angle": [
+          [
+            0,
+            95
+          ]
+        ]
+      },
+      "footleft": {
+        "angle": [
+          [
+            0,
+            0
+          ]
+        ]
+      },
+      "legright1": {
+        "angle": [
+          [
+            0,
+            70
+          ]
+        ]
+      },
+      "legright2": {
+        "angle": [
+          [
+            0,
+            85
+          ]
+        ]
+      },
+      "footright": {
+        "angle": [
+          [
+            0,
+            0
+          ]
+        ]
+      },
+      "shoulderleft": {
+        "angle": [
+          [
+            0,
+            -110
+          ]
+        ]
+      },
+      "armleft1": {
+        "angle": [
+          [
+            0,
+            100
+          ]
+        ]
+      },
+      "armleft2": {
+        "angle": [
+          [
+            0,
+            90
+          ]
+        ]
+      },
+      "shoulderright": {
+        "angle": [
+          [
+            0,
+            110
+          ]
+        ]
+      },
+      "armright1": {
+        "angle": [
+          [
+            0,
+            80
+          ]
+        ]
+      },
+      "armright2": {
+        "angle": [
+          [
+            0,
+            90
+          ]
+        ]
+      }
+    },
+    "stand": {
+      "duration": 120,
+      "chest": {
+        "angle": [
+          [
+            0,
+            270
+          ],
+          [
+            30,
+            280
+          ],
+          [
+            90,
+            260
+          ],
+          [
+            119,
+            270
+          ]
+        ]
+      },
+      "head": {
+        "angle": [
+          [
+            0,
+            270
+          ],
+          [
+            30,
+            300
+          ],
+          [
+            90,
+            240
+          ],
+          [
+            119,
+            270
+          ]
+        ]
+      },
+      "legleft1": {
+        "angle": [
+          [
+            0,
+            110
+          ]
+        ]
+      },
+      "legleft2": {
+        "angle": [
+          [
+            0,
+            95
+          ]
+        ]
+      },
+      "footleft": {
+        "angle": [
+          [
+            0,
+            0
+          ]
+        ]
+      },
+      "legright1": {
+        "angle": [
+          [
+            0,
+            70
+          ]
+        ]
+      },
+      "legright2": {
+        "angle": [
+          [
+            0,
+            85
+          ]
+        ]
+      },
+      "footright": {
+        "angle": [
+          [
+            0,
+            0
+          ]
+        ]
+      },
+      "shoulderleft": {
+        "angle": [
+          [
+            0,
+            -110
+          ]
+        ]
+      },
+      "armleft1": {
+        "angle": [
+          [
+            0,
+            100
+          ]
+        ]
+      },
+      "armleft2": {
+        "angle": [
+          [
+            0,
+            90
+          ]
+        ]
+      },
+      "shoulderright": {
+        "angle": [
+          [
+            0,
+            110
+          ]
+        ]
+      },
+      "armright1": {
+        "angle": [
+          [
+            0,
+            80
+          ]
+        ]
+      },
+      "armright2": {
+        "angle": [
+          [
+            0,
+            90
+          ]
+        ]
+      }
+    },
+    "attack": {
+      "duration": 45,
+      "chest": {
+        "angle": [
+          [
+            0,
+            270
+          ],
+          [
+            14,
+            259.9456644000056
+          ],
+          [
+            28,
+            297.12130340415865
+          ],
+          [
+            44,
+            270
+          ]
+        ]
+      },
+      "head": {
+        "angle": [
+          [
+            0,
+            270
+          ]
+        ]
+      },
+      "legleft1": {
+        "angle": [
+          [
+            0,
+            110
+          ]
+        ]
+      },
+      "legleft2": {
+        "angle": [
+          [
+            0,
+            95
+          ]
+        ]
+      },
+      "footleft": {
+        "angle": [
+          [
+            0,
+            0
+          ]
+        ]
+      },
+      "legright1": {
+        "angle": [
+          [
+            0,
+            70
+          ]
+        ]
+      },
+      "legright2": {
+        "angle": [
+          [
+            0,
+            85
+          ]
+        ]
+      },
+      "footright": {
+        "angle": [
+          [
+            0,
+            0
+          ]
+        ]
+      },
+      "shoulderleft": {
+        "angle": [
+          [
+            0,
+            -110
+          ]
+        ]
+      },
+      "armleft1": {
+        "angle": [
+          [
+            0,
+            106.48356542967167
+          ],
+          [
+            14,
+            130.37282860189498
+          ],
+          [
+            28,
+            24.01865490513535
+          ],
+          [
+            44,
+            106.48356542967167
+          ]
+        ]
+      },
+      "armleft2": {
+        "angle": [
+          [
+            0,
+            38.20532768194505
+          ],
+          [
+            14,
+            5.568341839267191
+          ],
+          [
+            28,
+            1.2253506149260929
+          ],
+          [
+            44,
+            38.20532768194505
+          ]
+        ]
+      },
+      "shoulderright": {
+        "angle": [
+          [
+            0,
+            110
+          ]
+        ]
+      },
+      "armright1": {
+        "angle": [
+          [
+            0,
+            95.3067299891211
+          ],
+          [
+            14,
+            78.93571708895206
+          ],
+          [
+            28,
+            108.54095810818183
+          ],
+          [
+            44,
+            95.3067299891211
+          ]
+        ]
+      },
+      "armright2": {
+        "angle": [
+          [
+            0,
+            70.21076592105635
+          ],
+          [
+            14,
+            58.34537177366167
+          ],
+          [
+            28,
+            71.42072961955535
+          ],
+          [
+            44,
+            70.21076592105635
+          ]
+        ]
+      }
+    },
+    "walk": {
+      "duration": 60,
+      "chest": {
+        "angle": [
+          [
+            0,
+            270
+          ]
+        ]
+      },
+      "head": {
+        "angle": [
+          [
+            0,
+            270
+          ]
+        ]
+      },
+      "legleft1": {
+        "angle": [
+          [
+            0,
+            111.66595872329026
+          ],
+          [
+            30,
+            24.676863170337015
+          ],
+          [
+            59,
+            111.66595872329026
+          ]
+        ]
+      },
+      "legleft2": {
+        "angle": [
+          [
+            0,
+            136.76252584296935
+          ],
+          [
+            30,
+            102.52956984407808
+          ],
+          [
+            45,
+            90
+          ],
+          [
+            59,
+            136.76252584296935
+          ]
+        ]
+      },
+      "footleft": {
+        "angle": [
+          [
+            0,
+            47.81972512247387
+          ],
+          [
+            30,
+            -18.930467534439117
+          ],
+          [
+            59,
+            47.81972512247387
+          ]
+        ]
+      },
+      "legright1": {
+        "angle": [
+          [
+            0,
+            24.775140568831944
+          ],
+          [
+            30,
+            111.67464911902414
+          ],
+          [
+            59,
+            24.775140568831944
+          ]
+        ]
+      },
+      "legright2": {
+        "angle": [
+          [
+            0,
+            102.01037930009363
+          ],
+          [
+            15,
+            90
+          ],
+          [
+            30,
+            137.2849333525354
+          ],
+          [
+            59,
+            102.01037930009363
+          ]
+        ]
+      },
+      "footright": {
+        "angle": [
+          [
+            0,
+            -18.755891138060292
+          ],
+          [
+            30,
+            47.58175246566793
+          ],
+          [
+            59,
+            -18.755891138060292
+          ]
+        ]
+      },
+      "shoulderleft": {
+        "angle": [
+          [
+            0,
+            -110
+          ]
+        ]
+      },
+      "armleft1": {
+        "angle": [
+          [
+            0,
+            144.06021369768416
+          ],
+          [
+            30,
+            27.461802744689294
+          ],
+          [
+            59,
+            144.06021369768416
+          ]
+        ]
+      },
+      "armleft2": {
+        "angle": [
+          [
+            0,
+            129.00787264515031
+          ],
+          [
+            30,
+            -66.48249655910638
+          ],
+          [
+            59,
+            129.00787264515031
+          ]
+        ]
+      },
+      "shoulderright": {
+        "angle": [
+          [
+            0,
+            110
+          ]
+        ]
+      },
+      "armright1": {
+        "angle": [
+          [
+            0,
+            27.44348248977417
+          ],
+          [
+            30,
+            144.40055431312283
+          ],
+          [
+            59,
+            27.44348248977417
+          ]
+        ]
+      },
+      "armright2": {
+        "angle": [
+          [
+            0,
+            -66.41932572087103
+          ],
+          [
+            30,
+            129.3445641799958
+          ],
+          [
+            59,
+            -66.41932572087103
+          ]
+        ]
+      }
+    }
+  }
+}

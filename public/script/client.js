@@ -58,7 +58,7 @@ var COLOUR_NEUTRAL = [[255,255,0], [180,180,0], [255,255,200]];
 var COLOUR_HOSTILE = [[255,0,0], [180,0,0], [255,200,200]];
 
 //======SKELETONS======
-var skeleton = Skeletons.newSkeleton();
+var skeleton = JSON.parse(LOADED.json['json/skeleton.json']);
 skeleton.scale = 0.35;
 
 function openConnection() {
@@ -202,7 +202,7 @@ function readMessage(msg) {
 		//sprite = msg[4]
 		//stats = msg[5]
 		entities[msg[1]] = {control:msg[2], coords:msg[3], nextcoords:msg[3], sprite:msg[4],
-							stats:msg[5], selected:false, order:['stop']};
+							stats:msg[5], selected:false, order:['stop'], mirror:false};
 	} else if (msg[0] == 'unsee') {
 		//id = msg[1]
 		var entity = entities[msg[1]];
@@ -458,6 +458,12 @@ function gameLogic() {
 			dest = entities[entity.order[1]].coords;
 		}
 		
+		if (Math.round(dest[0] - entity.coords[0]) > 0) {
+			entity.mirror = false;
+		} else if (Math.round(dest[0] - entity.coords[0]) < 0) {
+			entity.mirror = true;
+		}
+		
 		if (LinAlg.pointDist(entity.coords, dest) <= entity.stats.spd) {
 			entity.nextcoords = dest;
 			entity.dest = entity.nextcoords;
@@ -510,9 +516,10 @@ function drawFrame() {
 				case 2: context.strokeStyle = rgbaString(COLOUR_NEUTRAL[HIGHLIGHT],1.0); break;
 				case 3: context.strokeStyle = rgbaString(COLOUR_HOSTILE[HIGHLIGHT],1.0);
 			}
-			context.beginPath();
+			/*context.beginPath();
 			context.arc(coords[0], coords[1], 24, 0, 2*Math.PI);
-			context.stroke();
+			context.stroke();*/
+			drawEllipse(coords[0], coords[1], 64, 32);
 		}
 		context.fillStyle = "rgba(50,50,50,1.0)";
 		context.fillRect(coords[0]-28, coords[1]+23, 56, 7);
@@ -576,6 +583,25 @@ function drawFrame() {
 	window.requestAnimationFrame(drawFrame);
 }
 
+function drawEllipse(centerX, centerY, width, height) {
+  context.beginPath();
+  
+  context.moveTo(centerX, centerY - height/2); // A1
+  
+  context.bezierCurveTo(
+    centerX + width/2, centerY - height/2, // C1
+    centerX + width/2, centerY + height/2, // C2
+    centerX, centerY + height/2); // A2
+
+  context.bezierCurveTo(
+    centerX - width/2, centerY + height/2, // C3
+    centerX - width/2, centerY - height/2, // C4
+    centerX, centerY - height/2); // A1
+ 
+  context.stroke();
+  context.closePath();	
+}
+
 function setTick() {
 	var wait = nextTick - new Date().getTime();
 	if (wait < 0) {
@@ -597,12 +623,27 @@ function rollBack(steps) {
 	gameStep -= steps;
 }
 
+var imageMap = [[ ["head",[["img/cia.png",128,128,80,0,16]]], ["armleft2",[["img/knife.png",100,50,-45,-22,22]]] ]];
+
 function drawEntity (entity) {
 	if (entity.sprite == 'man') {
 		//temporary
+		
+		//choose anim
+		var anim = 'stand';
+		switch(entity.order[0]) {
+			case 'stop': anim = 'stand'; break;
+			case 'move': anim = 'walk'; break;
+			case 'atk': anim = 'attack'; break;
+			default: anim = 'none';
+		}
+		
+		var frame = gameStep*2; //hurr
+		
 		skeleton.origin = entity.drawcoords;
-		Skeletons.poseSkeleton(skeleton, 'none', 0);
+		Skeletons.poseSkeleton(skeleton, anim, frame, entity.mirror);
 		Skeletons.drawWireframe(context, skeleton, []);
+		Skeletons.drawSkeleton(context, skeleton, imageMap, images, entity.mirror);
 		return;
 	}
 
@@ -646,12 +687,14 @@ function inRect(point, coords,width,height) {
 	return (Math.abs(point[0]-coords[0]) < width/2 && Math.abs(point[1]-coords[1]) < height/2);
 }
 
+var yCoefficient = 1.4;
+
 function viewToWorld(coords) {
-	return [coords[0]+camera[0], coords[1]+camera[1]];
+	return [coords[0]+camera[0], (coords[1]+camera[1])*yCoefficient];
 }
 
 function worldToView(coords) {
-	return [coords[0]-camera[0], coords[1]-camera[1]];
+	return [coords[0]-camera[0], (coords[1]-camera[1])/yCoefficient];
 }
 
 function setCanvasSize() {
@@ -660,6 +703,8 @@ function setCanvasSize() {
 	canvasHeight = outer.clientHeight;
 	canvas.width = canvasWidth;
 	canvas.height = canvasHeight;
+	context.canvasWidth = canvasWidth;
+	context.canvasHeight = canvasHeight;
 }
 
 function getScrollbarWidth() {

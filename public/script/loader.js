@@ -208,10 +208,17 @@ function onFileReady(name) {
 		//make images easily accessible by other scripts
 		filenames = LOADER.fileInfo.images;
 		for (var i = 0; i < filenames.length; i++) {
-			var imagename = filenames[i];
+			var filename = filenames[i];
 			var image = new Image();
-			image.src = LOADER.loadedFiles[imagename];
-			LOADED.images[imagename] = image;
+			image.src = LOADER.loadedFiles[filename];
+			LOADED.images[filename] = image;
+		}
+		
+		//same for json
+		filenames = LOADER.fileInfo.json;
+		LOADED.json = {};
+		for (var i = 0; i < filenames.length; i++) {
+			LOADED.json[filenames[i]] = LOADER.loadedFiles[filenames[i]];
 		}
 		
 		//run scripts
