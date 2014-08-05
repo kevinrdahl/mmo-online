@@ -27,6 +27,8 @@ document.oncontextmenu = function () {return false;};
 document.onclick = function(e) {e.preventDefault(); e.defaultPrevented = true; e.stopPropagation(); return false;};
 window.onresize = setCanvasSize;
 
+var logLevel = (QueryString.loglevel === 'undefined') ? 'all' : QueryString.loglevel;
+
 var nextTick;
 var TICK_LEN = 33;
 
@@ -162,7 +164,9 @@ function onMessage (message) {
 		if (back <= histLen) {
 			rollBack(back);
 		} else {
-			rollBack(histLen);
+			if (histLen != 0) {
+				rollBack(histLen);
+			}
 			waitSteps = wait;
 			console.log('WAIT ' + waitSteps);
 		}
@@ -178,7 +182,9 @@ function onMessage (message) {
 	} else if (msg[1] == 'chat') {
 		chatLog(msg[2]);
 	} else {
-		console.log(data);
+		if (logLevel == 'all') {
+			console.log(data);
+		}
 		messages.push(msg);
 	}
 }
@@ -473,7 +479,11 @@ function gameLogic() {
 			entity.nextcoords = dest;
 			entity.dest = entity.nextcoords;
 		} else {
-			angle = LinAlg.pointAngle(entity.coords, dest);
+			try {
+				angle = LinAlg.pointAngle(entity.coords, dest);
+			} catch (err) {
+				alert('drawentity ' + err);
+			}
 			entity.nextcoords = LinAlg.pointOffset(entity.coords, angle, entity.stats.spd);
 		}
 	}
@@ -506,7 +516,14 @@ function drawFrame() {
 		if (coords == nextcoords) {
 			entity.drawcoords = worldToView(coords);
 		} else {
-			var angle = LinAlg.pointAngle(coords, nextcoords);
+			try {
+				var angle = LinAlg.pointAngle(coords, nextcoords);
+			} catch (err) {
+				console.log('drawframe ' + err);
+				console.log(coords);
+				console.log(nextcoords);
+				console.log(entity);
+			}
 			var dist = LinAlg.pointDist(coords, nextcoords) * tickProgress;
 			entity.drawcoords = worldToView(LinAlg.pointOffset(coords, angle, dist));
 		}
@@ -627,6 +644,9 @@ function rollBack(steps) {
 		entity = entities[id];
 		which = entity.history.length-steps-1; //if this throws exceptions, it's the fault of the caller
 		entity.coords = entity.history[which];
+		if (entity.coords === 'undefined') {
+			alert('fuck');
+		}
 		entity.history = [];
 	}
 	gameStep -= steps;
