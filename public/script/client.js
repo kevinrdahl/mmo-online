@@ -288,11 +288,6 @@ function canvasLeftUp(mouseCoords) {
 		var entity;
 		for (id in entities) {
 			entity = entities[id];
-			if (entity.control == 0) {
-				console.log(mouseCoords);
-				console.log(up);
-				console.log(entity.coords);
-			}
 			if (inRect(up, entity.coords, 48, 48)) {
 				if (entity.control != 0 && ownSelected != 0) {
 					continue;
