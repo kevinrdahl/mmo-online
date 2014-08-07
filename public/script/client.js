@@ -29,8 +29,11 @@ window.onresize = setCanvasSize;
 
 var logLevel = (QueryString.loglevel === 'undefined') ? 'normal' : QueryString.loglevel;
 
-var nextTick;
+var thisTick; //time of this game step
+var nextTick; //time of next game step
 var TICK_LEN = 33;
+var timeDeltas = [];
+var avgTimeDelta = 150;
 
 var messages = [];
 var gameStep = -2;
@@ -50,7 +53,6 @@ var particles = [];
 var buttons = [];
 
 var ownSelected = 0;
-
 var HIGHLIGHT = 0;
 var HP = 1;
 var DAMAGE = 2;
@@ -60,7 +62,10 @@ var COLOUR_NEUTRAL = [[255,255,0], [180,180,0], [255,255,200]];
 var COLOUR_HOSTILE = [[255,0,0], [180,0,0], [255,200,200]];
 
 //======SKELETONS======
-var skeleton = JSON.parse(LOADED.json['json/skeleton.json']);
+var skeleton = Skeletons.fastSkeleton(JSON.parse(LOADED.json['skeleton.json']));
+var imageMap = [[ ["head",[["cia.gif",128,128,80,0,16]]], ["armleft2",[["knife.png",100,50,-45,-22,22]]] ]];
+imageMap = Skeletons.fastImageMap(imageMap, skeleton);
+console.log(JSON.stringify(imageMap));
 skeleton.scale = 0.35;
 
 function openConnection() {
@@ -133,6 +138,18 @@ function pingSend() {
 	socket.send(JSON.stringify(['ping']));
 }
 
+function estTimeToStep(step) {
+	var diff = step-gameStep;
+	var time = new Date().getTime();
+	if (diff == 0) {
+		return time-thisTick;
+	} else if (diff > 0) {
+		return nextTick-time + (diff-1)*TICK_LEN;
+	} else {
+		return -(time-thisTick) + diff*TICK_LEN;
+	}
+}
+
 function onMessage (message) {
 	var data = message.data;
 	var msg = JSON.parse(data);
@@ -143,38 +160,21 @@ function onMessage (message) {
 		startGame();
 		return;
 	}
-	var delta = msg[0] - gameStep;
-	if (deltas.length >= 10) {
-		deltas.shift();
-	}
-	deltas.push(Math.abs(delta));
+	
+	var delta = msg[0]-gameStep;
+	var timeDelta = estTimeToStep(msg[0]);
 	
 	if (delta < 0) {
-		//message arrived late, need to set gameStep back
-		var avg = 0;
-		for (var i = 0; i < deltas.length; i++) {
-			avg += deltas[i];
+		//roll back
+		var back = delta;
+		var histlen = gameStep - lastMessage;
+		if (back > histlen) {
+			back = histlen;
 		}
-		avg /= deltas.length;
-		advanceStep = 0;
-		var back = Math.floor(avg*2) + 1;
-		var histLen = gameStep - lastMessage;
-		var wait = back-histLen;
-		
-		if (back <= histLen) {
-			rollBack(back);
-		} else {
-			if (histLen != 0) {
-				rollBack(histLen);
-			}
-			waitSteps = wait;
-			console.log('WAIT ' + waitSteps);
-		}
-	} else if (delta == 0) {
-		advanceStep = 0;
-	} else {
-		advanceStep += delta/50;
+		rollBack(-back);
 	}
+	
+	timeDeltas.push([timeDelta, new Date().getTime()]);
 	
 	if (msg[1] == 'ping') {
 		lastMessage = msg[0];
@@ -420,7 +420,35 @@ function onTick() {
 		camera[0] += CAMERA_SPEED;
 	}
 	
-	nextTick += TICK_LEN;
+	thisTick = nextTick;
+	
+	//determine how much to adjust step
+	var expired = 0;
+	var avg = 0;
+	var cutoff  = new Date().getTime()-2000;
+	for (var i = 0; i < timeDeltas.length; i++) {
+		if (timeDeltas[i][1] < cutoff && timeDeltas.length-expired >= 10) {
+			expired++;
+			continue;
+		}
+		avg += timeDeltas[i][0];
+	}
+	timeDeltas.splice(0,expired);
+	avg /= timeDeltas.length;
+	avgTimeDelta = avg;
+	
+	var delta;
+	
+	if (avg > 25) {
+		delta = TICK_LEN * 1-(avg/500);
+		delta = Math.max(delta, 10);
+	} else if (avg > 0) {
+		delta = TICK_LEN;
+	} else {
+		delta = TICK_LEN + Math.abs(avg*2);
+	}
+	
+	nextTick += delta;
 	setTick();
 }
 
@@ -429,6 +457,10 @@ function gameLogic() {
 
 	for (id in entities) {
 		entities[id].coords = entities[id].nextcoords;
+		if (typeof entities[id].coords === 'undefined') {
+			console.log(entities[id]);
+			console.log('PANIC');
+		}
 	}
 
 	while (messages.length > 0) {
@@ -492,10 +524,8 @@ function drawFrame() {
 	var tickProgress = 1 - ((nextTick-drawTime) / TICK_LEN);
 	
 	if (tickProgress < 0) {
-		//console.log('(' + nextTick + ' - ' + drawTime + ') / ' + TICK_LEN + ' = ' + tickProgress);
 		tickProgress = 0;
 	} else if (tickProgress > 1) {
-		//console.log('(' + nextTick + ' - ' + drawTime + ') / ' + TICK_LEN + ' = ' + tickProgress);
 		tickProgress = 1;
 	}
 
@@ -590,7 +620,7 @@ function drawFrame() {
 		context.fillRect(buttons[i].coords[0]-24, buttons[i].coords[1]-24, 48,48);
 	}
 
-	//FPS
+	//FPSimg/
 	var thisDraw = new Date().getTime();
 	var fps = Math.round(1000 / (thisDraw - lastDraw));
 	lastDraw = thisDraw;
@@ -598,6 +628,7 @@ function drawFrame() {
 	context.fillStyle = '#000000';
 	context.font = '14px Arial';
 	context.fillText(fps, canvasWidth-50, 25);
+	context.fillText(Math.round(avgTimeDelta), canvasWidth-50, 50);
 
 	window.requestAnimationFrame(drawFrame);
 }
@@ -642,8 +673,6 @@ function rollBack(steps) {
 	gameStep -= steps;
 }
 
-var imageMap = [[ ["head",[["img/cia.gif",128,128,80,0,16]]], ["armleft2",[["img/knife.png",100,50,-45,-22,22]]] ]];
-
 function drawEntity (entity) {
 	if (entity.sprite == 'man') {
 		//temporary
@@ -668,7 +697,7 @@ function drawEntity (entity) {
 
 
 	var coords = entity.drawcoords;
-	var sprite = 'img/' + entity.sprite + '.jpg';
+	var sprite = entity.sprite + '.jpg';
 	if (sprite in images) {
 		//image exists, draw that
 		context.drawImage(images[sprite], coords[0]-24, coords[1]-24, 48, 48);
@@ -752,7 +781,8 @@ function getScrollbarWidth() {
 //loadImages();
 
 gameStep = -1;
-nextTick = new Date().getTime()+TICK_LEN;
+thisTick = new Date().getTime();
+nextTick = thisTick+TICK_LEN;
 onTick();
 var lastDraw = nextTick;
 window.requestAnimationFrame(drawFrame);

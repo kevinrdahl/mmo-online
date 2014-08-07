@@ -211,14 +211,16 @@ function onFileReady(name) {
 			var filename = filenames[i];
 			var image = new Image();
 			image.src = LOADER.loadedFiles[filename];
-			LOADED.images[filename] = image;
+			LOADED.images[filename.substring(4,filename.length)] = image;
 		}
 		
 		//same for json
 		filenames = LOADER.fileInfo.json;
 		LOADED.json = {};
 		for (var i = 0; i < filenames.length; i++) {
-			LOADED.json[filenames[i]] = LOADER.loadedFiles[filenames[i]];
+			var name = filenames[i];
+			name = name.substring(5, name.length);
+			LOADED.json[name] = LOADER.loadedFiles[filenames[i]];
 		}
 		
 		//run scripts
