@@ -46,8 +46,8 @@
       1
     ],
     [
-      "img/cia.png",
-      "image/jpg",
+      "img/cia.gif",
+      "image/gif",
       1
     ],
     [
@@ -60,7 +60,7 @@
     "img/man.jpg",
     "img/bear.jpg",
     "img/knife.png",
-    "img/cia.png"
+    "img/cia.gif"
   ],
   "html": [
     "mmoo.html"
