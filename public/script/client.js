@@ -34,6 +34,7 @@ var nextTick; //time of next game step
 var TICK_LEN = 33;
 var timeDeltas = [];
 var avgTimeDelta = 150;
+var maxTimeDelta = 0;
 
 var messages = [];
 var gameStep = -2;
@@ -425,23 +426,28 @@ function onTick() {
 	//determine how much to adjust step
 	var expired = 0;
 	var avg = 0;
+	var maxdelta = 0;
 	var cutoff  = new Date().getTime()-2000;
 	for (var i = 0; i < timeDeltas.length; i++) {
 		if (timeDeltas[i][1] < cutoff && timeDeltas.length-expired >= 10) {
 			expired++;
 			continue;
 		}
+		if (timeDeltas[i][0] > maxdelta) {
+			maxdelta = timeDeltas[i][0];
+		}
 		avg += timeDeltas[i][0];
 	}
 	timeDeltas.splice(0,expired);
 	avg /= timeDeltas.length;
 	avgTimeDelta = avg;
+	maxTimeDelta = maxdelta;
 	
 	var delta;
 	
 	if (avg > 25) {
 		delta = TICK_LEN * 1-(avg/500);
-		delta = Math.max(delta, 10);
+		delta = Math.max(delta, 1);
 	} else if (avg > 0) {
 		delta = TICK_LEN;
 	} else {
@@ -628,7 +634,7 @@ function drawFrame() {
 	context.fillStyle = '#000000';
 	context.font = '14px Arial';
 	context.fillText(fps, canvasWidth-50, 25);
-	context.fillText(Math.round(avgTimeDelta), canvasWidth-50, 50);
+	context.fillText(Math.round(maxTimeDelta), canvasWidth-50, 50);
 
 	window.requestAnimationFrame(drawFrame);
 }
