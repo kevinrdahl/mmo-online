@@ -23,18 +23,25 @@ setCanvasSize();
 
 var canvasInput = InputManager.createInputManager(canvas);
 
+var windowHasFocus = true;
+var loseFocusTime = new Date().getTime(); //sloppy but just to be safe
+var loseFocusPing = 500;
+
 document.oncontextmenu = function () {return false;};
 document.onclick = function(e) {e.preventDefault(); e.defaultPrevented = true; e.stopPropagation(); return false;};
 window.onresize = setCanvasSize;
+window.onblur = onLoseFocus;
+window.onfocus = onGainFocus;
 
 var logLevel = (QueryString.loglevel === 'undefined') ? 'normal' : QueryString.loglevel;
 
+var timeout = null; //used to cancel the setTimeout
 var thisTick; //time of this game step
 var nextTick; //time of next game step
 var TICK_LEN = 33;
 var timeDeltas = [];
 var avgTimeDelta = 150;
-var maxTimeDelta = 0;
+var maxTimeDelta = 300;
 
 var messages = [];
 var gameStep = -2;
@@ -61,6 +68,40 @@ var COLOUR_SELF = [[0,255,0], [0,180,0], [200,255,200]];
 var COLOUR_FRIENDLY = [[0,0,255], [0,0,180], [200,200,255]];
 var COLOUR_NEUTRAL = [[255,255,0], [180,180,0], [255,255,200]];
 var COLOUR_HOSTILE = [[255,0,0], [180,0,0], [255,200,200]];
+
+function onLoseFocus() {
+	console.log('MMO Online lost focus');
+	windowHasFocus = false;
+	loseFocusTime = new Date().getTime();
+	
+	if (timeout != null) {
+		clearTimeout(timeout);
+	}
+	loseFocusPing = maxTimeDelta;
+}
+
+function onGainFocus() {
+	console.log('MMO Online gained focus');
+	windowHasFocus = true;
+	
+	var currentTime = new Date().getTime();
+	var catchUp = Math.round((currentTime-loseFocusTime) / TICK_LEN);
+	
+	console.log('Fast forward ' + catchUp + ' steps');
+	for (var i = 0; i < catchUp; i++) {
+		gameLogic();
+	}
+	
+	thisTick = new Date().getTime(); //catching up may take some time
+	nextTick = thisTick + TICK_LEN;
+	
+	timeDeltas = [];
+	for (var i = 0; i < 5; i++) {
+		timeDeltas.push([loseFocusPing,thisTick]);
+	}
+	
+	setTick();
+}
 
 //======SKELETONS======
 var skeleton = Skeletons.fastSkeleton(JSON.parse(LOADED.json['skeleton.json']));
@@ -429,7 +470,7 @@ function onTick() {
 	var maxdelta = 0;
 	var cutoff  = new Date().getTime()-2000;
 	for (var i = 0; i < timeDeltas.length; i++) {
-		if (timeDeltas[i][1] < cutoff && timeDeltas.length-expired >= 10) {
+		if (timeDeltas[i][1] < cutoff) {
 			expired++;
 			continue;
 		}
@@ -439,7 +480,7 @@ function onTick() {
 		avg += timeDeltas[i][0];
 	}
 	timeDeltas.splice(0,expired);
-	avg /= timeDeltas.length;
+	avg /= timeDeltas.length+1;
 	avgTimeDelta = avg;
 	maxTimeDelta = maxdelta;
 	
@@ -447,7 +488,10 @@ function onTick() {
 	
 	if (avg > 25) {
 		delta = TICK_LEN * 1-(avg/500);
-		delta = Math.max(delta, 1);
+		delta = Math.max(delta, 0);
+		if (delta <= 2) {
+			console.log('GOTTA SIM FAST');
+		}
 	} else if (avg > 0) {
 		delta = TICK_LEN;
 	} else {
@@ -626,15 +670,20 @@ function drawFrame() {
 		context.fillRect(buttons[i].coords[0]-24, buttons[i].coords[1]-24, 48,48);
 	}
 
-	//FPSimg/
+	//FPS
 	var thisDraw = new Date().getTime();
 	var fps = Math.round(1000 / (thisDraw - lastDraw));
 	lastDraw = thisDraw;
 
-	context.fillStyle = '#000000';
+	if (windowHasFocus) {
+		context.fillStyle = '#000000';
+	} else {
+		context.fillStyle = '#FF0000';
+	}
+	
 	context.font = '14px Arial';
 	context.fillText(fps, canvasWidth-50, 25);
-	context.fillText(Math.round(maxTimeDelta), canvasWidth-50, 50);
+	context.fillText(Math.round(avgTimeDelta), canvasWidth-50, 50);
 
 	window.requestAnimationFrame(drawFrame);
 }
@@ -663,7 +712,7 @@ function setTick() {
 	if (wait < 0) {
 		wait = 0;
 	}
-	setTimeout(onTick,wait);
+	timeout = setTimeout(onTick,wait);
 }
 
 function rollBack(steps) {
