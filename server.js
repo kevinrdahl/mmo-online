@@ -1,8 +1,6 @@
 var port = 8999;
 
 var util = require('util');
-//var io = require('socket.io').listen(port, { log: false });
-
 var WebSocketServer = require('ws').Server
 var wss = new WebSocketServer({port: port});
 
@@ -15,33 +13,85 @@ try {
 }
 
 var clients = [];
+var pendingClients = [];
 var entities = {};
 
 var entityNum = 0;
+var clientNum = 0;
 var gameStep = 100;
 var stepTime = new Date().getTime();
 var nextTick;
+var TICK_LEN = 66;
 
 
 addEntity(entityNum, 'bears', [400,300], 'bear', {spd:3, hp:300, maxhp:300, atktime:30});
 entityNum++;
 
-wss.on('connection', function (socket) {
-	var id = new Date().getTime();
-	//TODO: make this safer ^
-	socket.id = id.toString();
-	util.log('Client connected: ' + socket.id);
-	socket.on('message', onMessage);
-	socket.on('close', onDisconnect);
-	
-	socket.send(JSON.stringify([gameStep, 'ping']));
-	newClient(socket);
-});
-
 function broadcast(msg) {
 	for (var i = 0; i < clients.length; i++) {
 		clients[i].send(msg);
 	}
+}
+
+wss.on('connection', function (socket) {
+	var id = clientNum++;
+	socket.id = id.toString();
+	util.log('Client connected: ' + socket.id);
+	
+	socket.playerId = null;
+	socket.onMessage = onPendingMessage;
+	socket.onDisconnect = onPendingDisconnect;
+	socket.on('message', function(data){this.onMessage(data);});
+	socket.on('close', function(){this.onDisconnect();});
+	pendingClients.push(socket);
+	socket.send("[]");
+});
+
+function newClient (socket) {
+}
+
+function onPendingMessage(data) {
+	util.log(this.id + ': ' + data);
+	//client is attempting to log in
+	var msg = JSON.parse(data);
+	
+	//for now ["login", name]
+	if (msg.length == 2 && msg[0] == 'login') {
+		login(this, msg[1]);
+	}
+}
+
+function onPendingDisconnect() {
+	util.log('Client disconnected: ' + this.id + ' (not logged in)');
+	//remove from pending
+	for (var i = 0; i < pendingClients.length; i++) {
+		if (pendingClients[i].id == this.id) {
+			pendingClients.splice(i,1);
+			break;
+		}
+	}
+}
+
+function login (socket, playerId) {
+	util.log('Client ' + socket.id + ' logged in as ' + playerId);
+	socket.playerId = playerId;
+	
+	//remove from pending
+	for (var i = 0; i < pendingClients.length; i++) {
+		if (pendingClients[i].id == socket.id) {
+			pendingClients.splice(i,1);
+			break;
+		}
+	}
+	
+	//add to clients
+	clients.push(socket);
+	
+	socket.onMessage = onMessage;
+	socket.onDisconnect = onDisconnect;
+	
+	socket.send(JSON.stringify([gameStep, 'ping']));
+	seeAll(socket);
 }
 
 function onMessage(data) {
@@ -56,7 +106,7 @@ function onMessage(data) {
 		return;
 	}
 
-	util.log(this.id + ': ' + data);
+	util.log(this.playerId + ': ' + data);
 	
 	if (msg[0] == 'move' || msg[0] == 'atk') {
 		if (entities[msg[1]] == null) {
@@ -78,14 +128,14 @@ function onMessage(data) {
 			addAction(msg[1], [msg[0], msg[2]], !msg[3]);
 		}
 	} else if (msg[0] == 'chat' && msg.length == 2) {
-		msg[1] = '<b>[' + this.id + ']</b>: ' + msg[1];
+		msg[1] = '<b>[' + this.playerId + ']</b>: ' + msg[1];
 		data = JSON.stringify([gameStep, msg[0], msg[1]]);
 		broadcast(data);
 	} else if (msg[0] == 'but') {
 		if (msg[1] == 'red') {
 			addEntity(entityNum, 'bears', [400,300], 'bear', {spd:3, hp:300, maxhp:300, atktime:30});
 		} else if (msg[1] == 'green') {
-			addEntity(entityNum, this.id, [24,300], 'man', {spd:5, hp:100, maxhp:100, atktime:30});
+			addEntity(entityNum, this.playerId, [24,300], 'man', {spd:5, hp:100, maxhp:100, atktime:30});
 		} else if (msg[1] == 'yellow') {
 			addEntity(entityNum, 'neutral', [100,600], 'man', {spd:5, hp:100, maxhp:100, atktime:30});
 		}
@@ -95,10 +145,7 @@ function onMessage(data) {
 }
 
 function onDisconnect() {
-	util.log('Client disconnected: ' + this.id);
-	if (this.id in entities) {
-		removeEntity(this.id);
-	}
+	util.log('Client disconnected: ' + this.id + ' (' + this.playerId + ')');
 	for (var i = 0; i < clients.length; i++) {
 		if(clients[i].id == this.id) {
 			clients.splice(i, 1);
@@ -128,7 +175,7 @@ function onTick() {
 		wait = 0;
 	}
 	setTimeout(onTick,wait);
-	nextTick += 33;
+	nextTick += TICK_LEN;
 }
 
 function entityStep (id, firstCall) {
@@ -254,14 +301,6 @@ function actionString (id, action) {
 	return JSON.stringify([gameStep, 'stop', id, entities[id].coords]);
 }
 
-function newClient (socket) {
-	clients.push(socket);
-	seeAll(socket);
-	var start = [randRange(0,800), randRange(0,600)]
-	addEntity(entityNum, socket.id, start, 'man', {spd:5, hp:100, maxhp:100, atktime:30});
-	entityNum++;
-}
-
 function addEntity (id, control, coords, sprite, stats) {
 	entities[id] = {coords:coords, nextCoords:coords, control:control, stats:stats, sprite:sprite, attacking:0, actions:[]};
 	for (var i = 0; i < clients.length; i++) {
@@ -309,7 +348,7 @@ function damageEntity(id, amount) {
 }
 
 function determineControl(client, entity) {
-	if (entity.control == client.id) {
+	if (entity.control == client.playerId) {
 		return 0;
 	} else if (entity.control == 'bears') {
 		return 3;
@@ -325,5 +364,5 @@ function randRange (minimum, maximum) {
 
 util.log('Server running on port ' + port);
 
-nextTick = new Date().getTime()+33;
+nextTick = new Date().getTime()+TICK_LEN;
 onTick();
