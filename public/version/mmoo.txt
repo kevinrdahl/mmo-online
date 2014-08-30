@@ -26,6 +26,11 @@
       8
     ],
     [
+      "script/ui.js",
+      "txt",
+      1
+    ],
+    [
       "script/client.js",
       "txt",
       38
@@ -72,6 +77,7 @@
     "script/LinAlg.js",
     "script/InputManager.js",
     "script/skeletons.js",
+    "script/ui.js",
     "script/client.js"
   ],
   "json": [

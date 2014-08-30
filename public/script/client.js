@@ -30,18 +30,17 @@ var loseFocusPing = 500;
 document.oncontextmenu = function () {return false;};
 document.onclick = function(e) {e.preventDefault(); e.defaultPrevented = true; e.stopPropagation(); return false;};
 window.onresize = setCanvasSize;
-window.onblur = onLoseFocus;
-window.onfocus = onGainFocus;
 
 var logLevel = (QueryString.loglevel === 'undefined') ? 'normal' : QueryString.loglevel;
 
 var timeout = null; //used to cancel the setTimeout
 var thisTick; //time of this game step
 var nextTick; //time of next game step
-var TICK_LEN = 33;
+var TICK_LEN = 66;
 var timeDeltas = [];
 var avgTimeDelta = 150;
 var maxTimeDelta = 300;
+var lastDraw;
 
 var messages = [];
 var gameStep = -2;
@@ -55,19 +54,12 @@ var images = LOADED.images;
 
 var camera = [0,0];
 var CAMERA_SPEED = 20;
+var playerId;
 
 var entities = new Object();
-var particles = [];
 var buttons = [];
 
 var ownSelected = 0;
-var HIGHLIGHT = 0;
-var HP = 1;
-var DAMAGE = 2;
-var COLOUR_SELF = [[0,255,0], [0,180,0], [200,255,200]];
-var COLOUR_FRIENDLY = [[0,0,255], [0,0,180], [200,200,255]];
-var COLOUR_NEUTRAL = [[255,255,0], [180,180,0], [255,255,200]];
-var COLOUR_HOSTILE = [[255,0,0], [180,0,0], [255,200,200]];
 
 function onLoseFocus() {
 	console.log('MMO Online lost focus');
@@ -121,6 +113,14 @@ function openConnection() {
 
 function startGame() {
 	clearChat();
+	thisTick = new Date().getTime();
+	nextTick = thisTick+TICK_LEN;
+	
+	onTick();
+	lastDraw = nextTick;
+	window.onblur = onLoseFocus;
+	window.onfocus = onGainFocus;
+	window.requestAnimationFrame(drawFrame);
 	
 	buttons.push({	coords:[24,24], 
 		action:'red',
@@ -196,8 +196,15 @@ function onMessage (message) {
 	var data = message.data;
 	var msg = JSON.parse(data);
 	
-	if (gameStep < 0) {
+	if (gameStep == -2) {
+		//just connected, try to log in
+		socket.send(JSON.stringify(['login', playerId]));
+		gameStep = -1;
+		return;
+	} else if (gameStep == -1) {
+		console.log('CHECK IT ' + data);
 		gameStep = msg[0]-10;
+		console.log(gameStep);
 		lastMessage = gameStep;
 		startGame();
 		return;
@@ -246,13 +253,20 @@ function readMessage(msg) {
 		setEntityCoords(msg[1], msg[2]);
 		entities[msg[1]].order = ['stop'];
 	} else if (msg[0] == 'see') {
-		//id = msg[1]
-		//control = msg[2]
-		//coords = msg[3]
-		//sprite = msg[4]
-		//stats = msg[5]
-		entities[msg[1]] = {control:msg[2], coords:msg[3], nextcoords:msg[3], sprite:msg[4],
-							stats:msg[5], selected:false, order:['stop'], mirror:false};
+		var entity = {
+			control:msg[2],
+			coords:msg[3],
+			nextcoords:msg[3],
+			sprite:msg[4],
+			stats:msg[5],
+			selected:false,
+			order:['stop'],
+			mirror:false,
+			ui:{}
+		};
+		entities[msg[1]] = entity;
+		entity.ui.hpBar = UI.newBar(-30, 20, 60, 8, 1, entity.stats.hp, entity.stats.maxhp);
+		entity.ui.circle = UI.newCircle(35,2);
 	} else if (msg[0] == 'unsee') {
 		//id = msg[1]
 		var entity = entities[msg[1]];
@@ -272,7 +286,7 @@ function readMessage(msg) {
 		var vals = msg[2];
 		for (key in vals) {
 			if (key == 'hp') {
-				damageEntity(id,vals[key]);
+				damageEntity(id,vals[key],nextTick);
 			} else {
 				id.stats[key] = vals[key];
 			}
@@ -326,6 +340,7 @@ function canvasLeftUp(mouseCoords) {
 				if ((up[0] <= entity.coords[0] && entity.coords[0] <= down[0])
 					&&(up[1] <= entity.coords[1] && entity.coords[1] <= down[1])) {
 					entity.selected = true;
+					UI.highlightCircle(entity.ui.circle, thisTick);
 					if (entities[id].control == 0) {
 						ownSelected++;
 					}
@@ -341,6 +356,7 @@ function canvasLeftUp(mouseCoords) {
 					continue;
 				}
 				entity.selected = true;
+				UI.highlightCircle(entity.ui.circle, thisTick);
 				if (entities[id].control == 0) {
 					ownSelected++;
 				}
@@ -385,28 +401,14 @@ function canvasRightUp(mouseCoords) {
 	}
 }
 
-function damageEntity(id, amount) {
+function damageEntity(id, amount, time) {
 	entity = entities[id];
 	var hp0 = entity.stats.hp;
 	entity.stats.hp -= amount;
 	if (entity.stats.hp < 0) {
 		entity.stats.hp = 0;
 	}
-	var hp1 = entity.stats.hp;
-	var dmgratio = parseFloat(hp0-hp1)/entity.stats.maxhp;
-	var hpratio = parseFloat(entity.stats.hp)/entity.stats.maxhp;
-	x = -27 + Math.floor(hpratio*54);
-	y = 24;
-	width = Math.ceil(dmgratio*54);
-	height = 5;
-	var colour;
-	switch (entities[id].control) {
-		case 0: colour = COLOUR_SELF[DAMAGE]; break;
-		case 1: colour = COLOUR_FRIENDLY[DAMAGE]; break;
-		case 2: colour = COLOUR_NEUTRAL[DAMAGE]; break;
-		case 3: colour = COLOUR_HOSTILE[DAMAGE];
-	}
-	particles.push({attach:id, x:x, y:y, width:width, height:height, colour:colour, life:15, lifetime:15});
+	UI.changeBar(entity.ui.hpBar, -amount, time);
 }
 
 function setEntityCoords(id, coords) {
@@ -417,37 +419,21 @@ function setEntityCoords(id, coords) {
 
 function onTick() {
 	if (gameStep == -2) {
-		//loading screen
-		context.clearRect(0,0,canvasWidth, canvasHeight);
-		context.fillStyle = "rgba(50,50,50,1.0)";
-		context.fillRect(canvasWidth/4, canvasHeight/2-15, canvasWidth/2, 30);
-		var w = canvasHeight/2-6;
-		var w2 = Math.ceil(w * (numLoaded/imageList.length));
-		context.fillStyle = rgbaString(COLOUR_SELF[HP],1.0);
-		context.fillRect(canvasWidth/4+3, canvasHeight/2-12, w2, 24);
+		//connecting
 		setTick();
 		return;
 	} else if (gameStep == -1) {
-		//menu
+		//logging in
 		setTick();
 		return;
 	}
 
-	if (gameStep - lastMessage > 30 && !pingOut) {
+	if (gameStep - lastMessage > 10 && !pingOut) {
 		pingSend();
 		pingOut = true;
 	}
 	
-	if (waitSteps > 0) {
-		waitSteps--;
-	} else {
-		gameLogic();
-		if (advanceStep >= 1) {
-			advanceStep--;
-			console.log("ADVANCE");
-			gameLogic();
-		}
-	}
+	gameLogic();
 	
 	if (InputManager.isPressed('UP')) {
 		camera[1] -= CAMERA_SPEED;
@@ -601,60 +587,29 @@ function drawFrame() {
 			entity.drawcoords = worldToView(LinAlg.pointOffset(coords, angle, dist));
 		}
 
-		drawEntity(entity);
+		drawEntity(entity, tickProgress);
 	}
 	
 	//selection circles and health bars (want these always on top of entities)
 	for (id in entities) {
 		var coords = entities[id].drawcoords;
+		var colorSet;
+		switch (entities[id].control) {
+			case 0: colorSet = UI.colorSets.self; break;
+			case 1: colorSet = UI.colorSets.friendly; break;
+			case 2: colorSet = UI.colorSets.neutral; break;
+			case 3: colorSet = UI.colorSets.hostile;
+		}
 
 		if (entities[id].selected) {
-			switch (entities[id].control) {
-				case 0: context.strokeStyle = rgbaString(COLOUR_SELF[HIGHLIGHT],1.0); break;
-				case 1: context.strokeStyle = rgbaString(COLOUR_FRIENDLY[HIGHLIGHT],1.0); break;
-				case 2: context.strokeStyle = rgbaString(COLOUR_NEUTRAL[HIGHLIGHT],1.0); break;
-				case 3: context.strokeStyle = rgbaString(COLOUR_HOSTILE[HIGHLIGHT],1.0);
-			}
-			/*context.beginPath();
-			context.arc(coords[0], coords[1], 24, 0, 2*Math.PI);
-			context.stroke();*/
-			drawEllipse(coords[0], coords[1], 64, 32);
+			UI.drawCircle(context, entities[id].ui.circle, coords, colorSet, drawTime);
 		}
-		context.fillStyle = "rgba(50,50,50,1.0)";
-		context.fillRect(coords[0]-28, coords[1]+23, 56, 7);
-		switch (entities[id].control) {
-			case 0: context.fillStyle = rgbaString(COLOUR_SELF[HP],1.0); break;
-			case 1: context.fillStyle = rgbaString(COLOUR_FRIENDLY[HP],1.0); break;
-			case 2: context.fillStyle = rgbaString(COLOUR_NEUTRAL[HP],1.0); break;
-			case 3: context.fillStyle = rgbaString(COLOUR_HOSTILE[HP],1.0);
-		}
-		var ratio = parseFloat(entities[id].stats.hp)/entities[id].stats.maxhp;
-		context.fillRect(coords[0]-27, coords[1]+24, Math.floor(ratio*54), 5);
-	}
-	
-	//health bar effects
-	var i = 0;
-	while (i < particles.length) {
-		var p = particles[i];
-		if (!(p.attach in entities)) {
-			particles.splice(i,1);
-			continue;
-		}
-		context.fillStyle = "rgba(" + p.colour[0] + "," + p.colour[1] + "," + p.colour[2] + "," +
-							parseFloat(p.life)/p.lifetime + ")";
-		var coords = entities[p.attach].drawcoords;
-		context.fillRect(coords[0]+p.x, coords[1]+p.y, p.width, p.height);
-		p.life--;
-		if (p.life == 0) {
-			particles.splice(i,1);
-		} else {
-			i++;
-		}
+		UI.drawBar(context, entities[id].ui.hpBar, coords, colorSet, drawTime);
 	}
 	
 	//selection rectangle
 	if (canvasInput.leftMouseDragging) {
-		context.strokeStyle = "rgba(0,255,0,1.0)";
+		context.strokeStyle = UI.colorSets.self.select;
 		var c = canvasInput.leftMouseDownCoords;
 		var down = [c[0], c[1]]; //to prevent overwrite with fixRectCorners
 		c = canvasInput.mouseCoords;
@@ -728,7 +683,7 @@ function rollBack(steps) {
 	gameStep -= steps;
 }
 
-function drawEntity (entity) {
+function drawEntity (entity, tickProgress) {
 	if (entity.sprite == 'man') {
 		//temporary
 		
@@ -741,7 +696,7 @@ function drawEntity (entity) {
 			default: anim = 'none';
 		}
 		
-		var frame = gameStep*2; //hurr
+		var frame = (gameStep + (tickProgress)) * 4;
 		
 		skeleton.origin = entity.drawcoords;
 		Skeletons.poseSkeleton(skeleton, anim, frame, entity.mirror);
@@ -833,13 +788,6 @@ function getScrollbarWidth() {
     return widthNoScroll - widthWithScroll;
 }
 
-//loadImages();
-
-gameStep = -1;
-thisTick = new Date().getTime();
-nextTick = thisTick+TICK_LEN;
-onTick();
-var lastDraw = nextTick;
-window.requestAnimationFrame(drawFrame);
+playerId = prompt('Enter name');
 
 openConnection();
