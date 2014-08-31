@@ -454,7 +454,7 @@ function onTick() {
 	var expired = 0;
 	var avg = 0;
 	var maxdelta = 0;
-	var cutoff  = new Date().getTime()-2000;
+	var cutoff  = new Date().getTime()-5000;
 	for (var i = 0; i < timeDeltas.length; i++) {
 		if (timeDeltas[i][1] < cutoff) {
 			expired++;
@@ -473,8 +473,8 @@ function onTick() {
 	var delta;
 	
 	if (avg > 25) {
-		delta = TICK_LEN * 1-(avg/500);
-		delta = Math.max(delta, 0);
+		delta = TICK_LEN - (maxdelta/100);
+		delta = Math.max(delta, TICK_LEN/2);
 		if (delta <= 2) {
 			console.log('GOTTA SIM FAST');
 		}
